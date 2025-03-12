@@ -15,7 +15,7 @@ describe("Crowdfund", ()=>{
 	describe ("Deployment", ()=>{
 		const metadataUrl = "https://cominglater.com/json"
 		const goal = ethers.parseEther("10");
-		const duration = 24 * 60 * 60 * 1000  // seconds
+		const duration = 24 * 60 * 60 // 1 day
 
 		it ("Should emit create event", async ()=>{
 			const { crowdfund } = await loadFixture(deployContractFixture);
@@ -31,11 +31,12 @@ describe("Crowdfund", ()=>{
 			assert(count2 - count1 === 1n);
 		});
 
-		// it("Should fail if duration is less than MIN_DURATION", async function () {
-	    //   await expect(await crowdfund.createCampaign(metadataUrl, goal, duration))
-	    //   	.to.be.revertedWith(
-	    //     	"Duration must be greater than MIN_DURATION"
-	    //   );
+		it("Should be reverted if duration is less than MIN_DURATION", async function () {
+			const { crowdfund } = await loadFixture(deployContractFixture);
+			const duration = 60 * 60; // 1
+	      	expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+	      		.to.be.reverted;
+	    });
 
 		// it ("Should increment count", async ()=>{
 		// 	expect(crowdfund.campaignCount).gr()

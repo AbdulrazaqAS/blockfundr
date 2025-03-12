@@ -24,8 +24,8 @@ contract Crowdfund {
     event Refunded(uint indexed campaignId, address backer, uint amount);
 
     function createCampaign(string memory _metadataUrl, uint _goal, uint _duration) external {
-        require(_goal > MIN_GOAL, "Goal must be greater than MIN_GOAL");
-        require(_duration > MIN_DURATION, "Duration must be greater than MIN_DURATION");
+        require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
+        require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
 
         campaignCount++;
         Campaign storage campaign = campaigns[campaignCount];
