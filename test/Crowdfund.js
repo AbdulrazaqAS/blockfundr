@@ -28,7 +28,7 @@ describe("Crowdfund", ()=>{
 			const count1 = await crowdfund.campaignCount();
 			await crowdfund.createCampaign(metadataUrl, goal, duration)
 			const count2 = await crowdfund.campaignCount();
-			assert(count2 - count1 === 1, "");
+			assert(count2 - count1 === 1n);
 		});
 
 		// it("Should fail if duration is less than MIN_DURATION", async function () {
