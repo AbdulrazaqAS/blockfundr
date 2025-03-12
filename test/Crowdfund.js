@@ -23,23 +23,31 @@ describe("Crowdfund", ()=>{
 						.to.emit(crowdfund, "CampaignCreated");
 		});
 
-		it ("Should increment campaigns count", async ()=>{
+		it ("Should increment campaigns count by 1", async ()=>{
 			const { crowdfund } = await loadFixture(deployContractFixture);
 			const count1 = await crowdfund.campaignCount();
-			await crowdfund.createCampaign(metadataUrl, goal, duration)
+			await crowdfund.createCampaign(metadataUrl, goal, duration);
 			const count2 = await crowdfund.campaignCount();
 			assert(count2 - count1 === 1n);
 		});
 
 		it("Should be reverted if duration is less than MIN_DURATION", async function () {
 			const { crowdfund } = await loadFixture(deployContractFixture);
-			const duration = 60 * 60; // 1
+			const duration = 60 * 60; // 1 sec
 	      	expect(crowdfund.createCampaign(metadataUrl, goal, duration))
-	      		.to.be.reverted;
+	      		.to.be.revertedWith(
+	        		"Duration must be greater than MIN_DURATION"
+	        	);
 	    });
 
-		// it ("Should increment count", async ()=>{
-		// 	expect(crowdfund.campaignCount).gr()
-		// });
+	    it("Should be reverted if goal is less than MIN_GOAL", async function () {
+			const { crowdfund } = await loadFixture(deployContractFixture);
+			const goal = 1;  // ether
+	      	expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+	      		.to.be.revertedWith(
+	        		"Goal must be greater than MIN_GOAL"
+	        	);
+	    });
+
 	});
 });

@@ -26,7 +26,9 @@ contract Crowdfund {
     function createCampaign(string memory _metadataUrl, uint _goal, uint _duration) external {
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
         require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
-
+        // TODO: Check for _metadataUrl
+        // TODO: Add max open campaigns for an account
+        
         campaignCount++;
         Campaign storage campaign = campaigns[campaignCount];
         campaign.creator = msg.sender;
