@@ -1,13 +1,16 @@
-# Sample Hardhat Project
+# Blockchain Crowdfunding Platform
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+**Steps**
+- Create a campaign: set deadline and target goal.
+- Let backers fund it
+- Withdraw if deadline is reached, or
+- Goal is reached
+- Withdraw 95% of raised funds.
+- 5% to support platform.
 
-Try running some of the following tasks:
+Currently only supports ether currency.
 
+Running:
 ```shell
-npx hardhat help
 npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```

@@ -12,18 +12,19 @@ contract Crowdfund {
         mapping(address => uint256) contributions;
     }
 
-    uint public campaignCount;
-    mapping(uint => Campaign) public campaigns;
+    uint256 public campaignCount;
+    mapping(uint256 => Campaign) public campaigns;
 
     uint256 public MIN_GOAL = 0.0005 ether;
     uint256 public MIN_DURATION = 1 days;
+    uint256 public WITHDRAW_PERCENT = 95;
 
-    event CampaignCreated(uint indexed campaignId, address creator, uint goal, uint deadline);
-    event Funded(uint indexed campaignId, address backer, uint amount);
-    event Withdrawn(uint indexed campaignId, address creator, uint amount);
-    event Refunded(uint indexed campaignId, address backer, uint amount);
+    event CampaignCreated(uint256 indexed campaignId, address creator, uint256 goal, uint256 deadline);
+    event Funded(uint256 indexed campaignId, address backer, uint256 amount);
+    event Withdrawn(uint256 indexed campaignId, address creator, uint256 amount, uint256 time);
+    // TODO: implement refund
 
-    function createCampaign(string memory _metadataUrl, uint _goal, uint _duration) external returns (uint256) {
+    function createCampaign(string memory _metadataUrl, uint256 _goal, uint256 _duration) external {
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
         require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
         // TODO: Check for _metadataUrl
@@ -35,14 +36,12 @@ contract Crowdfund {
         campaign.metadataUrl = _metadataUrl;
         campaign.goal = _goal;
         campaign.deadline = block.timestamp + _duration;
+
         campaignCount++;
-
         emit CampaignCreated(campaignCount, msg.sender, _goal, campaign.deadline);
-
-        return campaign.id;
     }
 
-    function fundCampaign(uint _campaignId) external payable {
+    function fundCampaign(uint256 _campaignId) external payable {
         Campaign storage campaign = campaigns[_campaignId];
         require(block.timestamp < campaign.deadline, "Campaign expired");
         require(msg.value > 0, "Must send ETH");
@@ -51,5 +50,26 @@ contract Crowdfund {
         campaign.contributions[msg.sender] += msg.value;
 
         emit Funded(_campaignId, msg.sender, msg.value);
+    }
+
+    function withdrawFunds(uint256 _campaignId) external {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(msg.sender == campaign.creator, "Only creator can withdraw");
+        require(campaign.fundsRaised >= campaign.goal || block.timestamp > campaign.deadline, 
+            "Wait for campaign to expire or reach funding goal");
+
+        uint256 amount = (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
+
+        payable(msg.sender).transfer(amount);
+        emit Withdrawn(_campaignId, msg.sender, amount, block.timestamp);
+    }
+
+    function getContribution(uint256 _campaignId, address _contributor) external view returns (uint256) {
+        return campaigns[_campaignId].contributions[_contributor];
+    }
+
+    function calculateWithdrawAmount(uint256 _campaignId) external view returns (uint256) {
+        Campaign storage campaign = campaigns[_campaignId];
+        return (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
     }
 }
