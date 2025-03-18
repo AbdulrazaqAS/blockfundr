@@ -1,8 +1,8 @@
 function ConnectBtn(){
 	return (
-		<div className="connectBtn">
+		<button className="connectBtn">
 			Connect Wallet
-		</div>
+		</button>
 	)
 }
 
