@@ -1,8 +1,3 @@
-import { ethers } from "ethers";
-
-import crowdfundArtifact from "../contracts/Crowdfund.json";
-import contractAddress from "../contracts/contract-address.json";
-
 import { useState } from 'react'
 import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
