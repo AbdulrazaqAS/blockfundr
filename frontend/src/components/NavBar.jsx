@@ -1,10 +1,10 @@
 import ConnectBtn from './ConnectBtn.jsx'
 
-function NavBar(){
+function NavBar({address}){
 	return (
 		<div className="navbar">
 			<img src="/goteo-white.svg" alt="logo"/>
-			<ConnectBtn />
+			<ConnectBtn address={address} />
 		</div>
 	)
 }
