@@ -9,7 +9,7 @@ contract Crowdfund {
         uint256 goal;
         uint256 deadline;
         uint256 fundsRaised;
-        uint256 contributors;
+        uint256 totalContributors;
         mapping(address => uint256) contributions;
     }
 
@@ -49,7 +49,7 @@ contract Crowdfund {
 
         // If is new contributor
         if (campaign.contributions[msg.sender] == 0){
-            campaign.contributors++;
+            campaign.totalContributors++;
         }
 
         campaign.fundsRaised += msg.value;

@@ -17,7 +17,7 @@ const PRIVATE_KEY = import.meta.env.VITE_Private_Key0;
 const provider = ethers.getDefaultProvider("http://localhost:8545/");
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 //TODO: What is the contract is not yet deployed
-const crowdfundContract = new ethers.Contract(contractAddress.crowdfund, crowdfundArtifact.abi, wallet);
+const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, wallet);
 // const crowdfundContract = new ethers.Contract(contractAddress.crowdfund, crowdfundArtifact.abi, provider);
 
 function App() {
@@ -62,7 +62,7 @@ function App() {
       const totalCampaigns = tx.toString();
       setTotalCampaigns(totalCampaigns);
       
-      // use Promise.all here to load faster
+      // TODO: use Promise.all here to load faster
       const loadedCampaigns = [];
       for (let i=0;i<totalCampaigns;i++){
         const campaign = await crowdfundContract.campaigns(i);
@@ -74,7 +74,7 @@ function App() {
           goal: campaign[3],
           deadline: campaign[4],
           fundsRaised: campaign[5],
-          contributors: campaign[6],
+          totalContributors: campaign[6],
         }
 
         loadedCampaigns.push(campaignObj);
@@ -97,8 +97,7 @@ function App() {
       <ul className="active-campaigns-container">
         {campaigns.map((campaign) => (
           <li key={campaign.id}>
-            {/* {console.log("2", campaign)} */}
-            <Card />
+            <Card id={campaign.id} creator={campaign.creator} metadataUrl={campaign.metadataUrl} goal={campaign.goal} deadline={campaign.deadline} fundsRaised={campaign.fundsRaised} totalContributors={campaign.totalContributors}/>
           </li>
         ))}
       </ul>
