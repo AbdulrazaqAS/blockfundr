@@ -9,6 +9,7 @@ contract Crowdfund {
         uint256 goal;
         uint256 deadline;
         uint256 fundsRaised;
+        uint256 contributors;
         mapping(address => uint256) contributions;
     }
 
@@ -46,8 +47,14 @@ contract Crowdfund {
         require(block.timestamp < campaign.deadline, "Campaign expired");
         require(msg.value > 0, "Must send ETH");
 
+        // If is new contributor
+        if (campaign.contributions[msg.sender] == 0){
+            campaign.contributors++;
+        }
+
         campaign.fundsRaised += msg.value;
         campaign.contributions[msg.sender] += msg.value;
+
 
         emit Funded(_campaignId, msg.sender, msg.value);
     }

@@ -37,7 +37,7 @@ function saveFrontendFiles(contract, contractName, contractAddress) {
 
   fs.writeFileSync(
     path.join(contractsDir, "contract-address.json"),
-    JSON.stringify({ contractName: contractAddress }, undefined, 2)
+    JSON.stringify({ "crowdfund": contractAddress }, undefined, 2)
   );
 
   const ContractArtifact = artifacts.readArtifactSync(contractName);
