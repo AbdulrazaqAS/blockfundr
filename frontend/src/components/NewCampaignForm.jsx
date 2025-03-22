@@ -103,8 +103,11 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
 
     // TODO: WIll uisng ipfsUrl work here? If yes, use it and delete ipfsLink
     // TODO: Add a place to put ipfs link then hide image and description fields
-    const ipfsLink = await uploadToIPFS();
-    // const ipfsLink = "https://gateway.pinata.cloud/ipfs/QmbvNRUvX6387rg9SuzMHoTBnRxx2dKtUaqxXXcwZJtdXy";
+    // const ipfsLink = await uploadToIPFS();
+    const ipfsLinks = ["https://gateway.pinata.cloud/ipfs/QmbvNRUvX6387rg9SuzMHoTBnRxx2dKtUaqxXXcwZJtdXy",
+                      "https://gateway.pinata.cloud/ipfs/QmNRBiYMq5XBrJiNNxr3vs6Bswhvmizzs8Rcj8ihtmzuib",
+                      "https://gateway.pinata.cloud/ipfs/QmQmswLAdaQdqxTx9qy9Qve1tLKVwUZkq5hoBtE2WWqskn"]
+    const ipfsLink = ipfsLinks[Math.floor(Math.random() * ipfsLinks.length)];
     if (!ipfsLink){
       setLoadingNewCampaign(false);
       return;
@@ -144,12 +147,12 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
         <h2>Create a New Campaign</h2>
         <div className="formFieldBox">
             <label>Cover Image</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} required />
+            <input type="file" accept="image/*" onChange={handleFileChange} />
         </div>
         
         <div className="formFieldBox">
             <label>Description</label>
-            <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} required />
+            <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} />
         </div>
 
         <div className="formFieldBox">
