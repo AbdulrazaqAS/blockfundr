@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 function timeRemaining(deadlineInSeconds) {
     const now = Math.floor(Date.now() / 1000); // Current time in seconds
     let remaining = deadlineInSeconds - now;
@@ -21,15 +23,37 @@ function getPercentage(part, total) {
     return Math.floor((part / total) * 100);
 }
 
+
 function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, totalContributors}){
+    const [metadata, setMetadata] = useState(null);
+    const defaultDescription = "Blockchain funding campaign. Donate for good. Donate for DeFi.";
+
+    async function loadMetadata(url) {
+        try {
+            const response = await fetch(url);
+            const metadata = await response.json();
+            
+            return metadata;
+        } catch (error) {
+            console.error("Error loading metadata:", error);
+        }
+    }
+
+    useEffect(() => {
+        loadMetadata(metadataUrl).then((val) => {
+            setMetadata(val);
+        });
+    }, []);
+
 	return (
 		<div className="card">
             <a href="#">
-                <img id="card-img" src="campaign1.jpg" alt="logo"/>
+                <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             </a>
             <div id="card-info">
                 <h3>By: {creator.slice(0, 5) + "....." + creator.slice(37)}</h3>
-                <p>Are we in time to reverse our environmental impact on the planet and preserve its regenerative capacity?</p>
+                <p>{metadata ? metadata.description : defaultDescription}</p>
+                {/* TODO: Add location: city, Country. */}
                 <ul>
                     <li><strong>{fundsRaised.toString()} eth</strong><br />raised</li>
                     {/* If days < 0, show hours. You get it. */}

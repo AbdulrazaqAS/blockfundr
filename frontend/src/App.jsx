@@ -7,6 +7,7 @@ import contractAddress from "./contracts/contract-address.json";
 import { useState, useEffect } from 'react'
 import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
+import NewCampaignForm from './components/NewCampaignForm.jsx';
 //import reactLogo from './assets/react.svg'
 //import viteLogo from '/vite.svg'
 //import './App.css'
@@ -24,7 +25,9 @@ function App() {
   const [currentAddress, setCurrentAddress] = useState(wallet.address);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
-
+  const [showForm, setShowForm] = useState(false);
+  const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
+  
   async function createCard(){
     const totalCampaigns = await crowdfundContract.campaignCount();
 
@@ -33,10 +36,16 @@ function App() {
     // event is not fired. Maybe it is bcoz modifying the file leads to requerying the local provider
     // and since a new block is not added, the old one (if it has the event) will make this func fire.
     // THis 'if' block is taking care of that. THIS IS JUST AN EMPIRICALLY. Does it apply to main/test nets.
-    if (totalCampaigns == campaigns.length)
+    if (totalCampaigns <= campaigns.length)
     {
+      if (totalCampaigns < campaigns.length){
+        console.warn("Inconsistency in number of campaigns in contract vs frontend",
+                    `${totalCampaigns.toString()} != ${campaigns.length}`);
+      }
       return;
     }
+
+    // TODO: totalCampaigns - campaigns.length should be 1, else something is wrong
 
     const campaign = await crowdfundContract.campaigns(totalCampaigns - 1n); // index of campaign
     const campaignObj = {
@@ -57,11 +66,13 @@ function App() {
   }
 
   useEffect(() => {
+    crowdfundContract.on("CampaignCreated", createCard);
+
     async function loadCampaigns(){
-      const tx = await crowdfundContract.campaignCount();
-      const totalCampaigns = tx.toString();
+      let totalCampaigns = await crowdfundContract.campaignCount();
+      totalCampaigns = totalCampaigns.toString();
       setTotalCampaigns(totalCampaigns);
-      
+
       // TODO: use Promise.all here to load faster
       const loadedCampaigns = [];
       for (let i=0;i<totalCampaigns;i++){
@@ -81,19 +92,27 @@ function App() {
       }
       setCampaigns(loadedCampaigns);
     }
-
+    
     loadCampaigns();
-    crowdfundContract.on("CampaignCreated", createCard);
-
+    
     return () => {
       crowdfundContract.off("CampaignCreated", createCard);
     };
   }, [])
-
+  
   return (
     <div>
-      <NavBar address={currentAddress} crowdfund={crowdfundContract} />
-      <h2 className="active-campaigns-h2">Active Campaigns ({totalCampaigns.toString()})</h2>
+      <NavBar address={currentAddress} showForm={showForm} setShowForm={setShowForm} loadingNewCampaign={loadingNewCampaign}/>
+      {
+        showForm && (
+          <NewCampaignForm
+            crowdfundContract={crowdfundContract}
+            loadingNewCampaign={loadingNewCampaign}
+            setLoadingNewCampaign={setLoadingNewCampaign}
+          />
+        )
+      }
+      <h2 className="active-campaigns-h2">Active Campaigns ({totalCampaigns})</h2>
       <ul className="active-campaigns-container">
         {campaigns.map((campaign) => (
           <li key={campaign.id}>
