@@ -27,6 +27,7 @@ function App() {
   const [campaigns, setCampaigns] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
+  const [deployed, setDeployed] = useState(false);
   
   async function createCard(){
     const totalCampaigns = await crowdfundContract.campaignCount();
@@ -36,14 +37,14 @@ function App() {
     // event is not fired. Maybe it is bcoz modifying the file leads to requerying the local provider
     // and since a new block is not added, the old one (if it has the event) will make this func fire.
     // THis 'if' block is taking care of that. THIS IS JUST AN EMPIRICALLY. Does it apply to main/test nets.
-    if (totalCampaigns <= campaigns.length)
-    {
-      if (totalCampaigns < campaigns.length){
-        console.warn("Inconsistency in number of campaigns in contract vs frontend",
-                    `${totalCampaigns.toString()} != ${campaigns.length}`);
-      }
-      return;
-    }
+    // if (totalCampaigns <= campaigns.length)
+    // {
+    //   if (totalCampaigns < campaigns.length){
+    //     console.warn("Inconsistency in number of campaigns in contract vs frontend",
+    //                 `${totalCampaigns.toString()} != ${campaigns.length}`);
+    //   }
+    //   return;
+    // }
 
     // TODO: totalCampaigns - campaigns.length should be 1, else something is wrong
 
@@ -69,28 +70,34 @@ function App() {
     crowdfundContract.on("CampaignCreated", createCard);
 
     async function loadCampaigns(){
-      let totalCampaigns = await crowdfundContract.campaignCount();
-      totalCampaigns = totalCampaigns.toString();
-      setTotalCampaigns(totalCampaigns);
+      try {
+        let totalCampaigns = await crowdfundContract.campaignCount();
+        totalCampaigns = totalCampaigns.toString();
+        setTotalCampaigns(totalCampaigns);
 
-      // TODO: use Promise.all here to load faster
-      const loadedCampaigns = [];
-      for (let i=0;i<totalCampaigns;i++){
-        const campaign = await crowdfundContract.campaigns(i);
+        // TODO: use Promise.all here to load faster
+        const loadedCampaigns = [];
+        for (let i=0;i<totalCampaigns;i++){
+          const campaign = await crowdfundContract.campaigns(i);
 
-        const campaignObj = {
-          id: campaign[0],
-          creator: campaign[1],
-          metadataUrl: campaign[2],
-          goal: campaign[3],
-          deadline: campaign[4],
-          fundsRaised: campaign[5],
-          totalContributors: campaign[6],
+          const campaignObj = {
+            id: campaign[0],
+            creator: campaign[1],
+            metadataUrl: campaign[2],
+            goal: campaign[3],
+            deadline: campaign[4],
+            fundsRaised: campaign[5],
+            totalContributors: campaign[6],
+          }
+
+          loadedCampaigns.push(campaignObj);
         }
-
-        loadedCampaigns.push(campaignObj);
+        setCampaigns(loadedCampaigns);
+        setDeployed(true);
+      } catch (error) {
+        setDeployed(false);
+        console.error("Contract error", error);
       }
-      setCampaigns(loadedCampaigns);
     }
     
     loadCampaigns();
@@ -100,6 +107,10 @@ function App() {
     };
   }, [])
   
+  if (!deployed) {
+    return <h1>No contract deployed at {contractAddress.Crowdfund}</h1>
+  }
+
   return (
     <div>
       <NavBar address={currentAddress} showForm={showForm} setShowForm={setShowForm} loadingNewCampaign={loadingNewCampaign}/>
