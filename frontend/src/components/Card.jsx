@@ -24,8 +24,9 @@ function getPercentage(part, total) {
 }
 
 
-function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, totalContributors}){
+function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
+
     const defaultDescription = "Blockchain funding campaign. Donate for good. Donate for DeFi.";
 
     async function loadMetadata(url) {
@@ -46,10 +47,8 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, totalContr
     }, []);
 
 	return (
-		<div className="card">
-            <a href="#">
-                <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
-            </a>
+		<div className="card" onClick={()=>setShowCampaignInfo({id, metadata})}>
+            <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             <div id="card-info">
                 <h3>By: {creator.slice(0, 5) + "....." + creator.slice(37)}</h3>
                 <p>{metadata ? metadata.description : defaultDescription}</p>

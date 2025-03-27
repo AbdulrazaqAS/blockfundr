@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react'
 import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
 import NewCampaignForm from './components/NewCampaignForm.jsx';
+import CampaignInfoCard from './components/CampaignInfoCard';
+import {testCampaign} from './components/CampaignInfoCard';
 //import reactLogo from './assets/react.svg'
 //import viteLogo from '/vite.svg'
 //import './App.css'
@@ -28,25 +30,10 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
   const [deployed, setDeployed] = useState(false);
+  const [showCampaignInfo, setShowCampaignInfo] = useState(null);
   
   async function createCard(){
     const totalCampaigns = await crowdfundContract.campaignCount();
-
-    // Maybe in hardhat localhost, since blocks are not getting created until when a tx
-    // happens, modifying this file leads to rerunning this func even though a new CampaignCreated
-    // event is not fired. Maybe it is bcoz modifying the file leads to requerying the local provider
-    // and since a new block is not added, the old one (if it has the event) will make this func fire.
-    // THis 'if' block is taking care of that. THIS IS JUST AN EMPIRICALLY. Does it apply to main/test nets.
-    // if (totalCampaigns <= campaigns.length)
-    // {
-    //   if (totalCampaigns < campaigns.length){
-    //     console.warn("Inconsistency in number of campaigns in contract vs frontend",
-    //                 `${totalCampaigns.toString()} != ${campaigns.length}`);
-    //   }
-    //   return;
-    // }
-
-    // TODO: totalCampaigns - campaigns.length should be 1, else something is wrong
 
     const campaign = await crowdfundContract.campaigns(totalCampaigns - 1n); // index of campaign
     const campaignObj = {
@@ -59,10 +46,17 @@ function App() {
       contributors: campaign[6],
     }
 
-    console.log("Calling createCard");
+    // Maybe in hardhat localhost, since blocks are not getting created until when a tx
+    // happens, modifying this file leads to rerunning this func even though a new CampaignCreated
+    // event is not fired. Maybe it is bcoz modifying the file leads to requerying the local provider
+    // and since a new block is not added, the old one (if it has the event) will make this func fire.
+    // THis 'if' block is taking care of that. THIS IS JUST AN EMPIRICALLY. Does it apply to main/test nets.
     setTotalCampaigns(totalCampaigns.toString());
     setCampaigns((prev)=>{
-      return [...prev, campaignObj]
+      if (prev.length < totalCampaigns.toString())
+        return [...prev, campaignObj]
+      else
+        return prev
     });
   }
 
@@ -113,7 +107,14 @@ function App() {
 
   return (
     <div>
-      <NavBar address={currentAddress} showForm={showForm} setShowForm={setShowForm} loadingNewCampaign={loadingNewCampaign}/>
+      <NavBar
+        address={currentAddress}
+        showForm={showForm}
+        setShowForm={setShowForm}
+        loadingNewCampaign={loadingNewCampaign}
+        showCampaignInfo={showCampaignInfo}
+        setShowCampaignInfo={setShowCampaignInfo}
+      />
       {
         showForm && (
           <NewCampaignForm
@@ -123,11 +124,23 @@ function App() {
           />
         )
       }
+      {
+        showCampaignInfo && (
+          <CampaignInfoCard campaign={{...testCampaign, ...showCampaignInfo, ...campaigns[showCampaignInfo.id]}} />
+        )
+      }
       <h2 className="active-campaigns-h2">Active Campaigns ({totalCampaigns})</h2>
       <ul className="active-campaigns-container">
         {campaigns.map((campaign) => (
           <li key={campaign.id}>
-            <Card id={campaign.id} creator={campaign.creator} metadataUrl={campaign.metadataUrl} goal={campaign.goal} deadline={campaign.deadline} fundsRaised={campaign.fundsRaised} totalContributors={campaign.totalContributors}/>
+            <Card
+              id={campaign.id}
+              creator={campaign.creator}
+              metadataUrl={campaign.metadataUrl}
+              goal={campaign.goal} deadline={campaign.deadline}
+              fundsRaised={campaign.fundsRaised}
+              setShowCampaignInfo={setShowCampaignInfo}
+            />
           </li>
         ))}
       </ul>

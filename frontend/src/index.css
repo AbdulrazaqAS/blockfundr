@@ -66,6 +66,7 @@ button:disabled {
   margin-bottom: 15px;
   background-color: white;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 .card a, .card img{
@@ -155,4 +156,67 @@ progress {
   border-radius: 10px;
   padding: 10px 15px;
   margin: 10px 0px;
+}
+
+.campaignInfoCard {
+  width: 80%;
+  margin: 15px auto 0px;
+  padding: 20px;
+  border-radius: 10px;
+  background: white;
+}
+.campaignInfoCard-top {
+  display: flex;
+  margin-top: 10px;
+}
+
+.campaignInfoCard-topright {
+  width: 35%;
+}
+.campaignInfoCard-topleft {
+  width: 65%;
+  margin-right: 15px;
+}
+
+.campaignInfoCard-topleft p {
+  margin: 10px 0px;
+}
+.campaignInfoCard-topright img{
+  width: 100%;
+  height: 100%;
+}
+
+.campaignInfoCard-middle button {
+  background-color: rgba(62, 33, 79, 1);
+  color: white;
+  width: 20%;
+  min-width: fit-content;
+  margin-left: 10px;
+}
+
+.campaignInfoCard-middle button:hover {
+  background-color: rgb(94, 37, 128);
+  width: 25%;
+}
+
+.campaignInfoCard-middle input {
+  font-size: x-large;
+  border-radius: 10px;
+  width: 35%;
+  padding-left: 10px;
+  height: 40px;
+}
+
+.funding-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+.funding-table th, .funding-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+.funding-table th {
+  background-color: #f2f2f2;
 }

@@ -22,6 +22,7 @@ function calculateDuration(date){
 
 export default function CreateCampaign({ crowdfundContract, loadingNewCampaign,  setLoadingNewCampaign}) {
   const [image, setImage] = useState(null);
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [goal, setGoal] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -150,6 +151,11 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
             <input type="file" accept="image/*" onChange={handleFileChange} />
         </div>
         
+        <div className="formFieldBox">
+            <label>Title</label>
+            <input type="text" value={title} placeholder="Enter campaign title..." onChange={(e) => setTitle(e.target.value)} />
+        </div>
+
         <div className="formFieldBox">
             <label>Description</label>
             <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} />
