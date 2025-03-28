@@ -25,7 +25,7 @@ async function sendFunds(amount){
     const amountInWei = ethers.parseEther(amount);
     console.log("You have sent", amountInWei, "wei");
   } catch (error) {
-    console.error(error);
+    console.error("Error sending funds:", error);
   }
 }
 
