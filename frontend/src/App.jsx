@@ -111,6 +111,7 @@ function App() {
       <NavBar
         walletDetected={walletDetected}
         address={currentAddress}
+        setCurrentAddress={setCurrentAddress}
         showForm={showForm}
         setShowForm={setShowForm}
         loadingNewCampaign={loadingNewCampaign}

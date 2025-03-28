@@ -1,6 +1,6 @@
 import ConnectBtn from './ConnectBtn.jsx'
 
-function NavBar({walletDetected, address, showForm, setShowForm, loadingNewCampaign, showCampaignInfo, setShowCampaignInfo}){
+function NavBar({walletDetected, address, setCurrentAddress, showForm, setShowForm, loadingNewCampaign, showCampaignInfo, setShowCampaignInfo}){
 	return (
 		<div className="navbar">
 			<img src="blockfundr_cover.png" alt="logo"/>
@@ -12,7 +12,7 @@ function NavBar({walletDetected, address, showForm, setShowForm, loadingNewCampa
 					Close Info
 				</button>
 			)}
-			<ConnectBtn walletDetected={walletDetected} address={address} />
+			<ConnectBtn walletDetected={walletDetected} address={address} setCurrentAddress={setCurrentAddress}/>
 		</div>
 	)
 }
