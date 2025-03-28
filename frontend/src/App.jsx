@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { ethers } from "ethers";
-// import 'dotenv/config'
 
 import crowdfundArtifact from "./contracts/Crowdfund.json";
 import contractAddress from "./contracts/contract-address.json";
@@ -10,10 +9,8 @@ import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
 import NewCampaignForm from './components/NewCampaignForm.jsx';
 import CampaignInfoCard from './components/CampaignInfoCard';
+import NoWalletDetected from './components/NoWalletDetected';
 import {testCampaign} from './components/CampaignInfoCard';
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
-//import './App.css'
 
 const HARDHAT_NETWORK_ID = '31337';
 const PRIVATE_KEY = import.meta.env.VITE_Private_Key0;
@@ -25,7 +22,8 @@ const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfu
 // const crowdfundContract = new ethers.Contract(contractAddress.crowdfund, crowdfundArtifact.abi, provider);
 
 function App() {
-  const [currentAddress, setCurrentAddress] = useState(wallet.address);
+  const [walletDetected, setWalletDetected] = useState(true);
+  const [currentAddress, setCurrentAddress] = useState("");
   const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -62,6 +60,8 @@ function App() {
   }
 
   useEffect(() => {
+    if (window.ethereum === undefined) setWalletDetected(false);
+
     crowdfundContract.on("CampaignCreated", createCard);
 
     async function loadCampaigns(){
@@ -109,6 +109,7 @@ function App() {
   return (
     <div>
       <NavBar
+        walletDetected={walletDetected}
         address={currentAddress}
         showForm={showForm}
         setShowForm={setShowForm}
@@ -116,6 +117,7 @@ function App() {
         showCampaignInfo={showCampaignInfo}
         setShowCampaignInfo={setShowCampaignInfo}
       />
+      { !walletDetected && <NoWalletDetected /> }
       {
         showForm && (
           <NewCampaignForm
