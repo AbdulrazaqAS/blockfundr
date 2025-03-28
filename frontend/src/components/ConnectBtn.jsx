@@ -1,7 +1,7 @@
-function ConnectBtn(){
+function ConnectBtn({address}){
 	return (
 		<button className="connectBtn">
-			Connect Wallet
+			{address ? (address.toString().slice(0, 7) + "..." + address.toString().slice(37)) : ("Connect Wallet")}
 		</button>
 	)
 }

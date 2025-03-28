@@ -5,7 +5,9 @@
 }
 
 body {
-  background-color: rgb(238, 226, 226);
+  background-color: rgb(237, 205, 255);
+  color: rgb(54, 1, 85);
+  font-family: sans-serif;
 }
 
 .navbar {
@@ -14,34 +16,39 @@ body {
   align-items: center;
   justify-content: space-between;
 
-  min-height: 55px;
-  background-color: #19b4b2;
+  height: 55px;
+  background-color: rgb(62, 33, 79);
   padding: 10px 10px;
 }
 
 .navbar img {
   cursor: pointer;
+  height: inherit;
 }
 
 button {
   padding: 7px 15px;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 1);
   border-radius: 30px;
   cursor: pointer;
-  color: #19b4b2;
+  color: rgba(62, 33, 79, 1);
   border: none;
   font-size: 20px;
   transition: all 0.3s ease 0s;
 }
 
 button:hover {
-  padding-left: 25px;
-  padding-right: 25px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
 }
 
 .active-campaigns-h2 {
   text-align: center;
-  color: #19b4b2;
+  color: rgb(62, 33, 79);
   margin: 30px auto 10px;
 }
 
@@ -50,6 +57,7 @@ button:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+  list-style: none;
 }
 
 .card {
@@ -58,6 +66,7 @@ button:hover {
   margin-bottom: 15px;
   background-color: white;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 .card a, .card img{
@@ -68,7 +77,7 @@ button:hover {
 }
 
 .card h3 {
-  color: #19b4b2;
+  color: rgb(62, 33, 79);
 }
 
 .card ul {
@@ -84,11 +93,12 @@ button:hover {
   text-align: center;
 }
 
+/* Who is this? */
 .card-btn {
   position: absolute;
   width: 70px;
   height: 70px;
-  background-color: #19b4b2;
+  background-color: rgba(62, 33, 79, 1);
   border-radius: 50%;
   text-align: center;
   text-decoration: none;
@@ -105,4 +115,108 @@ button:hover {
 
 progress {
   width: 100%;
+}
+
+#newCampaignContainer h2{
+  margin: 0px auto 10px;
+}
+
+#newCampaignContainer button {
+  background-color: rgba(62, 33, 79, 1);
+  color: white;
+  width: 40%;
+  margin: 0px auto;
+}
+
+#newCampaignContainer button:hover {
+  background-color: rgba(62, 33, 79, 1);
+  color: white;
+  width: 45%;
+  margin: 0px auto;
+}
+
+#newCampaignContainer form {
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px 20px;
+  margin: 15px auto 0px;
+  display: flex;
+  flex-direction: column;
+  width: 75%;
+}
+
+.formFieldBox label{
+  margin-bottom: 5px;
+}
+
+.formFieldBox {
+  background-color: rgb(237, 205, 255);
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin: 10px 0px;
+}
+
+.campaignInfoCard {
+  width: 80%;
+  margin: 15px auto 0px;
+  padding: 20px;
+  border-radius: 10px;
+  background: white;
+}
+.campaignInfoCard-top {
+  display: flex;
+  margin-top: 10px;
+}
+
+.campaignInfoCard-topright {
+  width: 35%;
+}
+.campaignInfoCard-topleft {
+  width: 65%;
+  margin-right: 15px;
+}
+
+.campaignInfoCard-topleft p {
+  margin: 10px 0px;
+}
+.campaignInfoCard-topright img{
+  width: 100%;
+  height: 100%;
+}
+
+.campaignInfoCard-middle button {
+  background-color: rgba(62, 33, 79, 1);
+  color: white;
+  width: 20%;
+  min-width: fit-content;
+  margin-left: 10px;
+}
+
+.campaignInfoCard-middle button:hover {
+  background-color: rgb(94, 37, 128);
+  width: 25%;
+}
+
+.campaignInfoCard-middle input {
+  font-size: x-large;
+  border-radius: 10px;
+  width: 35%;
+  padding-left: 10px;
+  height: 40px;
+}
+
+.funding-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+.funding-table th, .funding-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+.funding-table th {
+  background-color: #f2f2f2;
 }
