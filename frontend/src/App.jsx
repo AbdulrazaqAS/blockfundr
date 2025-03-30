@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ethers } from "ethers";
 
+// TODO: Handle files not found(same as handling contract not deployed)
 import crowdfundArtifact from "./contracts/Crowdfund.json";
 import contractAddress from "./contracts/contract-address.json";
 
@@ -10,19 +11,22 @@ import Card from './components/Card.jsx'
 import NewCampaignForm from './components/NewCampaignForm.jsx';
 import CampaignInfoCard from './components/CampaignInfoCard';
 import NoWalletDetected from './components/NoWalletDetected';
+import ErrorMessage from './components/ErrorMessage.jsx';
 import {testCampaign} from './components/CampaignInfoCard';
 
 const HARDHAT_NETWORK_ID = '31337';
 const PRIVATE_KEY = import.meta.env.VITE_Private_Key0;
 
-const provider = ethers.getDefaultProvider("http://localhost:8545/");
-const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+// const provider = ethers.getDefaultProvider("http://localhost:8545/");
+// const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 //TODO: What is the contract is not yet deployed
-const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, wallet);
+// const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, wallet);
 // const crowdfundContract = new ethers.Contract(contractAddress.crowdfund, crowdfundArtifact.abi, provider);
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
+  const [provider, setProvider] = useState(null);
+  const [crowdfundContract, setCrowdfundContract] = useState(null);
   const [currentAddress, setCurrentAddress] = useState("");
   const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
@@ -30,6 +34,8 @@ function App() {
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
   const [deployed, setDeployed] = useState(false);
   const [showCampaignInfo, setShowCampaignInfo] = useState(null);
+  const [walletError, setWalletError] = useState(null);
+  const [initError, setInitError] = useState(null);
   
   async function createCard(){
     const totalCampaigns = await crowdfundContract.campaignCount();
@@ -60,9 +66,62 @@ function App() {
   }
 
   useEffect(() => {
+    let deployed = false;
     if (window.ethereum === undefined) setWalletDetected(false);
+    else {
+      try {
+        setWalletDetected(true);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        setProvider(provider);
 
-    crowdfundContract.on("CampaignCreated", createCard);
+        const network = provider.getNetwork();
+        network.then((val) => {
+          console.log("Network Name", val.name);
+          console.log("Network", val)
+        });
+
+        const code = provider.getCode(contractAddress.Crowdfund);
+        // TODO: show loading message while waiting to resolve
+        code.then((val) => {
+          try {
+            if (val !== '0x'){
+              const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
+              crowdfundContract.on("CampaignCreated", createCard);
+              setCrowdfundContract(crowdfundContract);
+              setDeployed(true);
+              deployed = true;
+              console.log("Contract Code:", val.slice(0, 10) + "..." + val.slice(-10));
+            } else {
+              throw new Error(`No contract deployed at ${contractAddress.Crowdfund}`);
+            }
+          } catch (error) {
+            console.error("Error getting contract:", error);
+            deployed = false;
+            setInitError(error);
+            const reload = setInterval(() => {
+              console.log("Retrying to connect to contract...");
+              const code = provider.getCode(contractAddress.Crowdfund);
+              code.then((val) => {
+                if (val !== '0x'){
+                  const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
+                  crowdfundContract.on("CampaignCreated", createCard);
+                  setCrowdfundContract(crowdfundContract);
+                  setDeployed(true);
+                  deployed = true;
+                  clearInterval(reload);
+                } else {
+                  setInitError(error);
+                }
+              });
+            }, 10000);
+          }
+        }); 
+      } catch (error) {
+        console.error("Error connecting to provider:", error);
+        setInitError(error);
+      }
+    }
+
 
     async function loadCampaigns(){
       try {
@@ -88,17 +147,20 @@ function App() {
           loadedCampaigns.push(campaignObj);
         }
         setCampaigns(loadedCampaigns);
-        setDeployed(true);
       } catch (error) {
-        setDeployed(false);
-        console.error("Contract error", error);
+        console.error("Contract loading campaigns:", error);
+        setInitError(error);
       }
     }
     
-    loadCampaigns();
+    if (deployed) loadCampaigns();
     
     return () => {
-      crowdfundContract.off("CampaignCreated", createCard);
+      try {
+        crowdfundContract.off("CampaignCreated", createCard);
+      } catch (error) {
+        console.error("Error removing event listener", error);
+      }
     };
   }, [])
   
@@ -112,6 +174,8 @@ function App() {
         walletDetected={walletDetected}
         address={currentAddress}
         setCurrentAddress={setCurrentAddress}
+        networkId={HARDHAT_NETWORK_ID}
+        setWalletError={setWalletError}
         showForm={showForm}
         setShowForm={setShowForm}
         loadingNewCampaign={loadingNewCampaign}
@@ -119,6 +183,8 @@ function App() {
         setShowCampaignInfo={setShowCampaignInfo}
       />
       { !walletDetected && <NoWalletDetected /> }
+      { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
+      { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
       {
         showForm && (
           <NewCampaignForm

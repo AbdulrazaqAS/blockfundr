@@ -1,6 +1,6 @@
 export default function NoWalletDetected() {
   return (
-    <div className="no-wallet-detected-bar">
+    <div className="error-bar">
         <p>
         No Ethereum wallet is detected.
         Please install{" "}

@@ -27,7 +27,7 @@ body {
   height: inherit;
 }
 
-.no-wallet-detected-bar {
+.error-bar {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
