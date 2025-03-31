@@ -134,8 +134,18 @@ function App() {
         setInitError(error);
       }
     }
+    
+    return () => {
+      // If crowdfundContract is null
+      try {
+        crowdfundContract.off("CampaignCreated", createCard);
+      } catch (error) {
+        console.error("Error removing event listener", error);
+      }
+    };
+  }, [])
 
-
+  useEffect(() => {
     async function loadCampaigns(){
       try {
         let totalCampaigns = await crowdfundContract.campaignCount();
@@ -161,27 +171,16 @@ function App() {
         }
         setCampaigns(loadedCampaigns);
       } catch (error) {
-        console.error("Contract loading campaigns:", error);
+        console.error("Error loading campaigns from contract:", error);
         setInitError(error);
       }
     }
-    
-    if (deployed) {
+
+    if (crowdfundContract) {
       console.log("Loading prev campaigns");
       loadCampaigns();
-    } else {
-      console.log("Contract not deployed yet");
     }
-    
-    return () => {
-      // If crowdfundContract is null
-      try {
-        crowdfundContract.off("CampaignCreated", createCard);
-      } catch (error) {
-        console.error("Error removing event listener", error);
-      }
-    };
-  }, [])
+  }, [crowdfundContract]);
 
   useEffect(() => {
     if (signer) {
