@@ -1,14 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import {parseEther} from "ethers";
+import {parseEther, formatEther} from "ethers";
 
-// TODO: clicking the btn multiple time quickly should be handled.
-//       Only if the first has been mined, else discard the subsequent clicks.
-async function newCampaign(crowdfundContract, metadataUrl, goal, duration){
-    const tx = await crowdfundContract.createCampaign(metadataUrl, goal, duration);
-    await tx.wait();
-    //TODO: Display tx link on etherscan
-}
+import ErrorMessage from "./ErrorMessage";
 
 function convertDateToSeconds(date){
     return Math.floor(new Date(date).getTime() / 1000);
@@ -20,20 +14,65 @@ function calculateDuration(date){
     return dateInSeconds - currentTime;
 }
 
-export default function CreateCampaign({ crowdfundContract, loadingNewCampaign,  setLoadingNewCampaign}) {
+export default function CreateCampaign({ crowdfundContract, provider, signer, setSigner, loadingNewCampaign,  setLoadingNewCampaign}) {
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [goal, setGoal] = useState("");
   const [deadline, setDeadline] = useState("");
   const [ipfsUrl, setIpfsUrl] = useState("");
+  const [error, setError] = useState(null);
+  const [minGoal, setMinGoal] = useState();
+  const [minDuration, setMinDuration] = useState();
 
   const pinataApiKey = import.meta.env.VITE_PINATA_API_KEY;
   const pinataSecret = import.meta.env.VITE_PINATA_API_SECRET;
 
+  useEffect(() => {
+    try {
+      // TODO: show "loading min value" below these fields in the form. Even though they will be loaded fast.
+      const minDuration = crowdfundContract.MIN_DURATION();
+      const minGoal = crowdfundContract.MIN_GOAL();
+      Promise.all([minDuration, minGoal]).then((arr)=>{
+        setMinDuration(arr[0]);
+        setMinGoal(arr[1]);
+        console.log("Min goal(wei):", arr[1], "Min duration(s):", arr[0]);
+      });
+    } catch (error) {
+      console.error("Error reading min values from contract:", error);
+      setError(error);
+    }
+  }, []);
+
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
   };
+
+  async function newCampaign(metadataUrl, goal, duration){
+    let signer0 = signer;
+    if (!signer){
+      try {
+        signer0 = await provider.getSigner(0);
+        console.log("Connected Signer:", signer0);
+        setSigner(signer0);
+      } catch (error) {
+        // TODO: Show error message in the form
+        console.error("Error connecting a signer:", error);
+        setSigner(null);
+        return null;
+      }
+    }
+
+    try {
+      const tx = await crowdfundContract.connect(signer0).createCampaign(metadataUrl, goal, duration);
+      await tx.wait();
+      //TODO: Display tx link on etherscan
+      return tx;
+    } catch (error) {
+      console.error("Error creating new campaign:", error);
+      return null;
+    }
+  }
 
   const uploadToIPFS = async () => {
     if (!image || !description) {
@@ -100,6 +139,7 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoadingNewCampaign(true);
 
     // TODO: WIll uisng ipfsUrl work here? If yes, use it and delete ipfsLink
@@ -114,31 +154,24 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
       return;
     }
 
-    try {
-      // TODO: Delete uploaded ifps file if can't create new campaign
-      // TODO: wrap all interactions with contract in a try-catch
-      const duration = calculateDuration(deadline);
-      const minDuration = await crowdfundContract.MIN_DURATION();
-      
-      if (duration < minDuration.toString()) {
-          alert("Invalid deadline");
-          throw new Error("Invalid deadline");
-      }
+    // TODO: Delete uploaded ifps file if can't create new campaign
+    const duration = calculateDuration(deadline);
+    const goalInWei = parseEther(goal);
+    const txReceipt = await newCampaign(ipfsLink, goalInWei, duration);
 
-      const goalInEther = parseEther(goal);
-      const minGoal = await crowdfundContract.MIN_GOAL();
-
-      if (goalInEther < minGoal.toString()){
-          alert("Invalid Goal");
-          throw new Error("Invalid Goal");
-      }
-
-      await newCampaign(crowdfundContract, ipfsLink, goalInEther, duration);
-    } catch (error) {
-      console.error(error);
-    } finally {
+    if (!txReceipt){
       setLoadingNewCampaign(false);
+      alert("Failed to create new campaign. Please try again.");
+      return;
     }
+    console.log("New campaign created successfully:", txReceipt);
+
+    setLoadingNewCampaign(false);
+    setImage("");
+    setTitle("");
+    setDescription("");
+    setGoal("");
+    setDeadline("");
   };
 
   // TODO: Implement minimum for goal and deadline
@@ -146,6 +179,7 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
     <div id="newCampaignContainer">
       <form onSubmit={handleSubmit}>
         <h2>Create a New Campaign</h2>
+        {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
             <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -164,14 +198,16 @@ export default function CreateCampaign({ crowdfundContract, loadingNewCampaign, 
         <div className="formFieldBox">
             <label>Goal (ETH)</label>
             <input type="number" placeholder="Target amount" value={goal} onChange={(e) => setGoal(e.target.value)} required />
+            {minGoal && goal < formatEther(minGoal) && <p className="red-p">Minimum goal is {formatEther(minGoal)} ETH</p>}
         </div>
 
         <div className="formFieldBox">
             <label>Deadline</label>
             <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} required />
+            {minDuration && calculateDuration(deadline) < minDuration && <p className="red-p">Minimum duration is {minDuration} seconds</p>}
         </div>
 
-        <button type="submit" disabled={loadingNewCampaign}>
+        <button type="submit" disabled={loadingNewCampaign || error || (minGoal && goal < formatEther(minGoal)) || (minDuration && calculateDuration(deadline) < minDuration)}>
           {loadingNewCampaign ? "Uploading..." : "Create Campaign"}
         </button>
       </form>

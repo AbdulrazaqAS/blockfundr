@@ -27,7 +27,8 @@ function App() {
   const [walletDetected, setWalletDetected] = useState(true);
   const [provider, setProvider] = useState(null);
   const [crowdfundContract, setCrowdfundContract] = useState(null);
-  const [currentAddress, setCurrentAddress] = useState("");
+  const [address, setAddress] = useState("");
+  const [signer, setSigner] = useState(null);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -37,7 +38,12 @@ function App() {
   const [walletError, setWalletError] = useState(null);
   const [initError, setInitError] = useState(null);
   
-  async function createCard(){
+  async function createCard(crowdfundContract){
+    if (!crowdfundContract) {
+      console.error("Crowdfund contract is not initialized");
+      return;
+    }
+    
     const totalCampaigns = await crowdfundContract.campaignCount();
 
     const campaign = await crowdfundContract.campaigns(totalCampaigns - 1n); // index of campaign
@@ -86,10 +92,13 @@ function App() {
           try {
             if (val !== '0x'){
               const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
-              crowdfundContract.on("CampaignCreated", createCard);
               setCrowdfundContract(crowdfundContract);
               setDeployed(true);
               deployed = true;
+              // crowdfundContract.on("CampaignCreated", createCard);
+              crowdfundContract.on("CampaignCreated", async () => {
+                await createCard(crowdfundContract); // Pass the contract directly
+              });
               console.log("Contract Code:", val.slice(0, 10) + "..." + val.slice(-10));
             } else {
               throw new Error(`No contract deployed at ${contractAddress.Crowdfund}`);
@@ -104,10 +113,14 @@ function App() {
               code.then((val) => {
                 if (val !== '0x'){
                   const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
-                  crowdfundContract.on("CampaignCreated", createCard);
+                  // crowdfundContract.on("CampaignCreated", createCard);
+                  crowdfundContract.on("CampaignCreated", async () => {
+                    await createCard(crowdfundContract); // Pass the contract directly
+                  });
                   setCrowdfundContract(crowdfundContract);
                   setDeployed(true);
                   deployed = true;
+                  setInitError(null);
                   clearInterval(reload);
                 } else {
                   setInitError(error);
@@ -153,9 +166,15 @@ function App() {
       }
     }
     
-    if (deployed) loadCampaigns();
+    if (deployed) {
+      console.log("Loading prev campaigns");
+      loadCampaigns();
+    } else {
+      console.log("Contract not deployed yet");
+    }
     
     return () => {
+      // If crowdfundContract is null
       try {
         crowdfundContract.off("CampaignCreated", createCard);
       } catch (error) {
@@ -163,17 +182,71 @@ function App() {
       }
     };
   }, [])
-  
-  if (!deployed) {
-    return <h1>No contract deployed at {contractAddress.Crowdfund}</h1>
-  }
+
+  useEffect(() => {
+    if (signer) {
+      try {
+        // const getSigner = async () => {
+        //   const address = await signer.getAddress();
+        //   setAddress(address);
+        // }
+        // getSigner();
+        setAddress(signer.address);
+      } catch (error) {
+        console.error("Error getting signer address:", error);
+      }
+    } else {
+      setAddress("");
+    }
+  }, [signer]);
+
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = async (accounts) => {
+        if (accounts.length === 0) {
+          console.log("MetaMask is locked or the user has disconnected.");
+          setSigner(null);
+        } else {
+          console.log("Account changed:", accounts[0]);
+          // setAddress(accounts[0]);
+          const newSigner = await provider.getSigner(accounts[0]);
+          setSigner(newSigner);
+        }
+      }
+
+      const handleChainChanged = (chainId) => {
+        console.log("Chain changed to:", chainId);
+        window.location.reload(); // Reload the page to handle the new chain
+        // Is there need to reconnect accounts?
+      }
+
+      const handleDisconnect = (error) => {
+        console.log("MetaMask disconnected:", error);
+        setSigner(null);
+      }
+
+      window.ethereum.on("accountsChanged", handleAccountsChanged);
+      window.ethereum.on("chainChanged", handleChainChanged);
+      window.ethereum.on("disconnect", handleDisconnect);  //  This only happens due to network connectivity issues or some unforeseen error.
+
+      return () => {
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
+        window.ethereum.removeListener("disconnect", handleDisconnect);
+      };
+    } else {
+      console.log("MetaMask is not installed.");
+    }
+  }, [provider]);
 
   return (
     <div>
       <NavBar
         walletDetected={walletDetected}
-        address={currentAddress}
-        setCurrentAddress={setCurrentAddress}
+        address={address}
+        provider={provider}
+        signer={signer}
+        setSigner={setSigner}
         networkId={HARDHAT_NETWORK_ID}
         setWalletError={setWalletError}
         showForm={showForm}
@@ -189,6 +262,9 @@ function App() {
         showForm && (
           <NewCampaignForm
             crowdfundContract={crowdfundContract}
+            provider={provider}
+            signer={signer}
+            setSigner={setSigner}
             loadingNewCampaign={loadingNewCampaign}
             setLoadingNewCampaign={setLoadingNewCampaign}
           />

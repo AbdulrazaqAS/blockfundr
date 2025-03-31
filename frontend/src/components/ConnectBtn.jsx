@@ -1,10 +1,18 @@
-function ConnectBtn({walletDetected, address, setWalletError, networkId, setCurrentAddress}){
+import { useState } from "react";
+
+function ConnectBtn({walletDetected, address, provider, signer, setSigner, setWalletError, networkId}){
+	const [isConnecting, setIsConnecting] = useState(false);
+
 	async function connectWallet(){
 		try {
+			setIsConnecting(true);
 			console.log("NetworkID", networkId);
-			const [address] = await window.ethereum.request({method: 'eth_requestAccounts'});
-			setCurrentAddress(address);
-			changeToNetwork(networkId);
+			const newSigner = await provider.getSigner(0);
+			if (signer && (newSigner.address === signer.address)) {
+				throw new Error("Already connected to this account. Use the wallet to disconnect.");
+			}
+			setSigner(newSigner);
+			changeToNetwork(networkId); // Seems not working
 		} catch (error) {
 			setWalletError(error);
 			if (error.code === 4001) {
@@ -14,7 +22,9 @@ function ConnectBtn({walletDetected, address, setWalletError, networkId, setCurr
 			} else {
 				console.error("Error connecting to wallet", error);
 			}
-			setCurrentAddress(null);
+			// setSigner(null);
+		} finally {
+			setIsConnecting(false);
 		}
 	}
 
@@ -42,13 +52,15 @@ function ConnectBtn({walletDetected, address, setWalletError, networkId, setCurr
 			} else {
 				console.error("Error switching network", error);
 			}
-			setCurrentAddress(null);
+			setAddress(null);
 		}	
 	}
 
 	return (
-		<button className="connectBtn" onClick={connectWallet} disabled={!walletDetected}>
-			{address ? (address.toString().slice(0, 7) + "..." + address.toString().slice(37)) : ("Connect Wallet")}
+		<button className="connectBtn" onClick={connectWallet} disabled={!walletDetected || isConnecting}>
+			{address ? (address.toString().slice(0, 7) + "..." + address.toString().slice(37))
+				: isConnecting ? "Connecting..." : ("Connect Wallet")
+			}
 		</button>
 	)
 }
