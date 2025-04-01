@@ -18,6 +18,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [goal, setGoal] = useState("");
   const [deadline, setDeadline] = useState("");
   const [ipfsUrl, setIpfsUrl] = useState("");
@@ -36,7 +37,12 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       Promise.all([minDuration, minGoal]).then((arr)=>{
         setMinDuration(arr[0]);
         setMinGoal(arr[1]);
-        console.log("Min goal(wei):", arr[1], "Min duration(s):", arr[0]);
+
+        // bigint => number won't lose precision here
+        const minSeconds = (Date.now() / 1000) + Number(arr[0]) + (24 * 60 * 60);
+        const minDate = new Date(minSeconds * 1000).toISOString().split("T")[0];
+        setDeadline(minDate);
+        setGoal(formatEther(arr[1]));
       });
     } catch (error) {
       console.error("Error reading min values from contract:", error);
@@ -193,6 +199,11 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         <div className="formFieldBox">
             <label>Description</label>
             <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} />
+        </div>
+
+        <div className="formFieldBox">
+            <label>Location</label>
+            <input minLength="4" maxLength="20" value={location} onChange={(e) => setLocation(e.target.value)} />
         </div>
 
         <div className="formFieldBox">

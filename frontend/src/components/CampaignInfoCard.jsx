@@ -1,26 +1,10 @@
 import {useEffect, useState} from "react";
 import {ethers} from "ethers";
 
-async function getFundedEvents(contract, campaignId) {
-    // Fetch past `Funded` events related to campaignId
-    const events = await contract.queryFilter(
-        contract.filters.Funded(campaignId)
-    );
-
-    console.log("Funded Events:");
-    events.forEach((event, index) => {
-        console.log(`Event ${index + 1}:`, {
-            campaignId: event.args.campaignId.toString(),
-            backer: event.args.backer,
-            amount: ethers.formatEther(event.args.amount),
-            transactionHash: event.transactionHash
-        });
-    });
-}
-
 const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
+  const [fundsHistory, setFundsHistory] = useState([]);
   
   const {
     id,
@@ -31,7 +15,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     fundsRaised,
     totalContributors,
     location,
-    fundingHistory,
     metadata: {
       description,
       image
@@ -68,15 +51,43 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     }
   }
 
-  
+  async function getFundedEvents(campaignId) {
+    // Fetch past `Funded` events related to campaignId
+    const events = await crowdfundContract.queryFilter(
+      crowdfundContract.filters.Funded(campaignId)
+    );
+
+    const eventsObjs = await Promise.all(
+      events.map(async (event) => {
+        const block = await provider.getBlock(event.blockNumber);
+        return {
+          campaignId: event.args.campaignId.toString(),
+          backer: event.args.backer,
+          amount: ethers.formatEther(event.args.amount),
+          transactionHash: event.transactionHash,
+          timestamp: block.timestamp,
+        };
+      })
+    );
+
+    return eventsObjs;
+  }
+
   const timeRemaining = Math.max(0, Math.floor((deadline.toString() * 1000 - Date.now()) / 1000 / 60 / 60 / 24));
-  const contributorsList = [];
+
   useEffect(() => {
-
-    for (let i=0; i<totalContributors;i++){
-
+    async function fetchFundingHistory() {
+      try {
+        const fundedEvents = await getFundedEvents(id);
+        setFundsHistory(fundedEvents);
+        console.log("Funding history:", fundedEvents);
+      } catch (error) {
+        console.error("Error fetching funding history:", error);
+      }
     }
-  }, []);
+
+    fetchFundingHistory();
+  }, [campaign]);
 
   return (
     <div className="campaignInfoCard">
@@ -116,11 +127,11 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           </tr>
         </thead>
         <tbody>
-          {fundingHistory.map((entry, index) => (
+          {[...fundsHistory].reverse().map((historyObj, index) => (
             <tr key={index}>
-              <td>{entry.backer}</td>
-              <td>{entry.amount}</td>
-              <td>{new Date(entry.date * 1000).toLocaleString()}</td>
+              <td>{historyObj.backer}</td>
+              <td>{historyObj.amount}</td>
+              <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -136,9 +147,4 @@ export const testCampaign = {
   title: "Solar Power for Rural Schools",
   // description: "Help provide clean energy to schools in remote areas. This campaign aims to install solar panels in rural schools to provide sustainable and uninterrupted electricity for students.",
   location: { city: "Nairobi", country: "Kenya" },
-  fundingHistory: [
-    { backer: "0x123...abc", amount: 5, date: Math.floor(Date.now() / 1000) - 86400 },
-    { backer: "0x456...def", amount: 10, date: Math.floor(Date.now() / 1000) - 43200 },
-    { backer: "0x789...ghi", amount: 15, date: Math.floor(Date.now() / 1000) - 21600 },
-  ],
 };
