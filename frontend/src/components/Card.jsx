@@ -25,7 +25,7 @@ function getPercentage(part, total) {
 }
 
 
-function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo}){
+function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
     const defaultDescription = "Blockchain funding campaign. Donate for good. Donate for DeFi.";
@@ -40,6 +40,10 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
             console.error("Error loading metadata:", error);
         }
     }
+    function handleClick() {
+        setShowCampaignInfo({id, metadata});
+        scrollToCampaignInfo();
+    }
 
     useEffect(() => {
         loadMetadata(metadataUrl).then((val) => {
@@ -48,7 +52,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
     }, []);
 
 	return (
-		<div className="card" onClick={()=>setShowCampaignInfo({id, metadata})}>
+		<div className="card" onClick={handleClick}>
             <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             <div id="card-info">
                 <h3>By: {creator.slice(0, 5) + "....." + creator.slice(37)}</h3>

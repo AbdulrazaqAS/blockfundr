@@ -30,7 +30,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     deadline,
     fundsRaised,
     totalContributors,
-    // description,
     location,
     fundingHistory,
     metadata: {
@@ -38,7 +37,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       image
     }
   } = campaign;
-  console.log("Campaign info:", campaign);
   
   async function sendFunds(amount){
     let newSigner = signer;
@@ -60,6 +58,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
       await tx.wait();
       console.log("Transaction successful:", tx.transactionHash);
+      setFundAmount(0);
+      // TODO: Show link to transaction on etherscan
+      // window.open(`https://etherscan.io/tx/${tx.transactionHash}`, "_blank");
     } catch (error) {
       console.error("Error sending funds:", error);
     } finally {
@@ -100,7 +101,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         <button disabled={isSending || fundAmount <= 0} onClick={() => sendFunds(fundAmount)}>
           {isSending ? "Sending..." : "Send Funds"}
         </button>
-        {isSending && <p className="red-p">Don't close this card</p>}
+        {isSending && <p className="red-p">Please don't close this card</p>}
       </div>
       <br />
       <hr />

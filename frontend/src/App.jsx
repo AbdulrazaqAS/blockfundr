@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ethers } from "ethers";
 
 // TODO: Handle files not found(same as handling contract not deployed)
@@ -38,6 +38,14 @@ function App() {
   const [walletError, setWalletError] = useState(null);
   const [initError, setInitError] = useState(null);
   
+  const campaignInfoRef = useRef(null);
+  
+  const scrollToCampaignInfo = () => {
+    if (campaignInfoRef.current) {
+      campaignInfoRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   async function createCard(crowdfundContract){
     if (!crowdfundContract) {
       console.error("Crowdfund contract is not initialized");
@@ -259,7 +267,7 @@ function App() {
 
   return (
     <div>
-      <NavBar
+      <NavBar  ref={campaignInfoRef}
         walletDetected={walletDetected}
         address={address}
         provider={provider}
@@ -310,6 +318,7 @@ function App() {
               goal={campaign.goal} deadline={campaign.deadline}
               fundsRaised={campaign.fundsRaised}
               setShowCampaignInfo={setShowCampaignInfo}
+              scrollToCampaignInfo={scrollToCampaignInfo}
             />
           </li>
         ))}
