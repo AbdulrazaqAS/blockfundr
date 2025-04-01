@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {formatEther} from "ethers";
 
 function timeRemaining(deadlineInSeconds) {
     const now = Math.floor(Date.now() / 1000); // Current time in seconds
@@ -51,10 +52,11 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
             <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             <div id="card-info">
                 <h3>By: {creator.slice(0, 5) + "....." + creator.slice(37)}</h3>
-                <p>{metadata ? metadata.description : defaultDescription}</p>
+                <p className="card-description">{metadata ? metadata.description : defaultDescription}</p>
                 {/* TODO: Add location: city, Country. */}
                 <ul>
-                    <li><strong>{fundsRaised.toString()} eth</strong><br />raised</li>
+                    <li><strong>{formatEther(fundsRaised.toString())} eth</strong><br />raised</li>
+                    <li className="divider-line"></li>
                     {/* If days < 0, show hours. You get it. */}
                     <li><strong>{timeRemaining(deadline.toString()).days} days</strong><br />remaining</li>
                 </ul>

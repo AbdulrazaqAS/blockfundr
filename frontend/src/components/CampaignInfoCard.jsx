@@ -18,21 +18,10 @@ async function getFundedEvents(contract, campaignId) {
     });
 }
 
-async function sendFunds(amount){
-  try {
-    if (amount <= 0) throw new Error("Invalid amount");
-
-    const amountInWei = ethers.parseEther(amount);
-    console.log("You have sent", amountInWei, "wei");
-  } catch (error) {
-    console.error("Error sending funds:", error);
-  }
-}
-
-const CampaignDetails = ({ crowdfundContract, campaign }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider }) => {
   const [fundAmount, setFundAmount] = useState(0);
-  const [txStatus, setTxStatus] = useState(null);
-
+  const [isSending, setIsSending] = useState(false);
+  
   const {
     id,
     title,
@@ -49,9 +38,36 @@ const CampaignDetails = ({ crowdfundContract, campaign }) => {
       image
     }
   } = campaign;
-
   console.log("Campaign info:", campaign);
+  
+  async function sendFunds(amount){
+    let newSigner = signer;
+    if (!newSigner) {
+        try {
+          newSigner = await provider.getSigner(0);
+          console.log("Connected Signer:", newSigner);
+          setSigner(newSigner);
+        } catch (error) {
+          console.error("Error connecting signer:", error);
+          setSigner(null);
+          return;
+        }
+    }
 
+    try {
+      setIsSending(true);
+      const amountInWei = ethers.parseEther(amount);
+      const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
+      await tx.wait();
+      console.log("Transaction successful:", tx.transactionHash);
+    } catch (error) {
+      console.error("Error sending funds:", error);
+    } finally {
+      setIsSending(false);
+    }
+  }
+
+  
   const timeRemaining = Math.max(0, Math.floor((deadline.toString() * 1000 - Date.now()) / 1000 / 60 / 60 / 24));
   const contributorsList = [];
   useEffect(() => {
@@ -80,8 +96,11 @@ const CampaignDetails = ({ crowdfundContract, campaign }) => {
         </div>
       </div>
       <div className="campaignInfoCard-middle">
-        <input type="number" min="0" value={Math.abs(fundAmount)} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
-        <button onClick={() => sendFunds(fundAmount)}>Send Funds</button>
+        <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
+        <button disabled={isSending || fundAmount <= 0} onClick={() => sendFunds(fundAmount)}>
+          {isSending ? "Sending..." : "Send Funds"}
+        </button>
+        {isSending && <p className="red-p">Don't close this card</p>}
       </div>
       <br />
       <hr />

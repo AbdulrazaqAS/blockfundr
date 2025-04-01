@@ -105,10 +105,26 @@ button:disabled {
 
 .card li {
   list-style-type: none;
+  text-align: center;
+  max-width: 45%;
 }
 
 .card p {
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-description {
+  display: -webkit-box; /* Required for line-clamp */
+  -webkit-line-clamp: 3; /* Number of lines to show */
+  line-clamp: 3; /* Standard property for compatibility */
+  -webkit-box-orient: vertical; /* Required for line-clamp */
+}
+
+.divider-line {
+  width: 3px;
+  background-color: rgb(62, 33, 79);
 }
 
 /* Who is this? */

@@ -93,19 +93,12 @@ function App() {
             if (val !== '0x'){
               const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
               setCrowdfundContract(crowdfundContract);
-              setDeployed(true);
-              deployed = true;
-              // crowdfundContract.on("CampaignCreated", createCard);
-              crowdfundContract.on("CampaignCreated", async () => {
-                await createCard(crowdfundContract); // Pass the contract directly
-              });
               console.log("Contract Code:", val.slice(0, 10) + "..." + val.slice(-10));
             } else {
               throw new Error(`No contract deployed at ${contractAddress.Crowdfund}`);
             }
           } catch (error) {
             console.error("Error getting contract:", error);
-            deployed = false;
             setInitError(error);
             const reload = setInterval(() => {
               console.log("Retrying to connect to contract...");
@@ -118,8 +111,6 @@ function App() {
                     await createCard(crowdfundContract); // Pass the contract directly
                   });
                   setCrowdfundContract(crowdfundContract);
-                  setDeployed(true);
-                  deployed = true;
                   setInitError(null);
                   clearInterval(reload);
                 } else {
@@ -134,15 +125,6 @@ function App() {
         setInitError(error);
       }
     }
-    
-    return () => {
-      // If crowdfundContract is null
-      try {
-        crowdfundContract.off("CampaignCreated", createCard);
-      } catch (error) {
-        console.error("Error removing event listener", error);
-      }
-    };
   }, [])
 
   useEffect(() => {
@@ -179,7 +161,44 @@ function App() {
     if (crowdfundContract) {
       console.log("Loading prev campaigns");
       loadCampaigns();
+
+      crowdfundContract.on("CampaignCreated", async () => {
+        await createCard(crowdfundContract); // Will work without await?
+      });
+
+      crowdfundContract.on("Funded", async (campaignId, backer, amount) => {
+        console.log("Funded event:", campaignId, backer, amount);
+        const fundedCampaign = await crowdfundContract.campaigns(campaignId);
+        const fundedCampaignObj = {
+          id: fundedCampaign[0],
+          creator: fundedCampaign[1],
+          metadataUrl: fundedCampaign[2],
+          goal: fundedCampaign[3],
+          deadline: fundedCampaign[4],
+          fundsRaised: fundedCampaign[5],
+          totalContributors: fundedCampaign[6],
+        }
+        setCampaigns((prev) => {
+          const updatedCampaigns = [...prev];
+          console.log("Prev campaign:", updatedCampaigns[campaignId]);
+          const updatedCampaign = {...updatedCampaigns[campaignId], ...fundedCampaignObj};
+          console.log("Updated campaign:", updatedCampaign);
+          updatedCampaigns[campaignId] = updatedCampaign;
+          return updatedCampaigns;
+        });
+      });
     }
+
+    return () => {
+      if (crowdfundContract) {
+        try {
+          crowdfundContract.off("CampaignCreated", createCard);
+          crowdfundContract.off("Funded");
+        } catch (error) {
+          console.error("Error removing event listener", error);
+        }
+      }
+    };
   }, [crowdfundContract]);
 
   useEffect(() => {
@@ -271,7 +290,13 @@ function App() {
       }
       {
         showCampaignInfo && (
-          <CampaignInfoCard campaign={{...testCampaign, ...showCampaignInfo, ...campaigns[showCampaignInfo.id]}} />
+          <CampaignInfoCard
+            campaign={{...testCampaign, ...showCampaignInfo, ...campaigns[showCampaignInfo.id]}}
+            crowdfundContract={crowdfundContract}
+            signer={signer}
+            setSigner={setSigner}
+            provider={provider}
+          />
         )
       }
       <h2 className="active-campaigns-h2">Active Campaigns ({totalCampaigns})</h2>
