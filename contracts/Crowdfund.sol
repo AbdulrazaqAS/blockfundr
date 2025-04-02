@@ -10,26 +10,37 @@ contract Crowdfund {
         uint256 deadline;
         uint256 fundsRaised;
         uint256 totalContributors;
+        bool isClosed;
         mapping(address => uint256) contributions;
     }
 
+    address owner;
     uint256 public campaignCount;
     mapping(uint256 => Campaign) public campaigns;
+    mapping(address => uint256) public usersCampaigns;
+    mapping(uint256 => bool) public stoppedCampaigns;
 
-    uint256 public MIN_GOAL = 0.0005 ether;
-    uint256 public MIN_DURATION = 1 days;
-    uint256 public WITHDRAW_PERCENT = 95;
+    uint256 public constant MIN_GOAL = 0.0005 ether;
+    uint256 public constant MIN_DURATION = 1 days;
+    uint256 public constant WITHDRAW_PERCENT = 95;
+    uint256 public constant MAX_CAMPAIGNS = 3;
 
-    event CampaignCreated(uint256 indexed campaignId, address creator, uint256 goal, uint256 deadline);
-    event Funded(uint256 indexed campaignId, address backer, uint256 amount);
-    event Withdrawn(uint256 indexed campaignId, address creator, uint256 amount, uint256 time);
-    // TODO: implement refund
+    event CampaignCreated(uint256 campaignId, address indexed creator);
+    event Funded(uint256 indexed campaignId, address indexed backer, uint256 amount);
+    event Withdrawn(uint256 campaignId, address indexed creator, uint256 amount);
+    event Refunded(uint256 indexed campaignId, address indexed backer, uint256 amount);
+    event Stopped(uint256 campaignId, bool byCreator);
+
+    constructor () {
+        owner = msg.sender;
+    }
 
     function createCampaign(string memory _metadataUrl, uint256 _goal, uint256 _duration) external {
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
         require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
-        // TODO: Check for _metadataUrl
-        // TODO: Add max open campaigns for an account
+        require(msg.sender == owner || usersCampaigns[msg.sender] < MAX_CAMPAIGNS,
+            "Max campaigns reached. Close some to create new ones");
+        // TODO: Check for _metadataUrl validity
 
         Campaign storage campaign = campaigns[campaignCount];
         campaign.id = campaignCount;
@@ -38,13 +49,15 @@ contract Crowdfund {
         campaign.goal = _goal;
         campaign.deadline = block.timestamp + _duration;
 
+        usersCampaigns[msg.sender]++;
         campaignCount++;
-        emit CampaignCreated(campaignCount, msg.sender, _goal, campaign.deadline);
+        emit CampaignCreated(campaignCount, msg.sender);
     }
 
     function fundCampaign(uint256 _campaignId) external payable {
         Campaign storage campaign = campaigns[_campaignId];
         require(block.timestamp < campaign.deadline, "Campaign expired");
+        require(!campaign.isClosed, "Campaign is closed");
         require(msg.value > 0, "Must send ETH");
 
         // If is new contributor
@@ -55,23 +68,51 @@ contract Crowdfund {
         campaign.fundsRaised += msg.value;
         campaign.contributions[msg.sender] += msg.value;
 
-
         emit Funded(_campaignId, msg.sender, msg.value);
     }
 
     function withdrawFunds(uint256 _campaignId) external {
         Campaign storage campaign = campaigns[_campaignId];
         require(msg.sender == campaign.creator, "Only creator can withdraw");
+        require(!campaign.isClosed, "Campaign is closed. Funds already withdrawn");
         require(campaign.fundsRaised >= campaign.goal || block.timestamp > campaign.deadline, 
             "Wait for campaign to expire or reach funding goal");
 
         uint256 amount = (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
 
         payable(msg.sender).transfer(amount);
-        emit Withdrawn(_campaignId, msg.sender, amount, block.timestamp);
+        campaign.isClosed = true;
+        emit Withdrawn(_campaignId, msg.sender, amount);
     }
 
-    function getContribution(uint256 _campaignId, address _contributor) external view returns (uint256) {
+    function stop(uint256 _campaignId) external {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(owner == msg.sender || msg.sender == campaign.creator, "Only creator or admin can stop a campaign");
+        require(!stoppedCampaigns[_campaignId], "Campaign is already stopped");
+        require(!campaign.isClosed, "Campaign is already closed");
+        require(block.timestamp < campaign.deadline, "Campaign has expired");
+
+        stoppedCampaigns[_campaignId] = true;
+        campaign.isClosed = true;
+
+        emit Stopped(_campaignId, msg.sender == campaign.creator);
+    }
+
+    function takeRefund(uint256 _campaignId) external {
+        uint256 contribution = getContribution(_campaignId, msg.sender);
+        require(stoppedCampaigns[_campaignId], "Refund is only available for stopped campaigns");
+        require(contribution > 1, "No funds available for refund"); // 1 because read below
+        
+        Campaign storage campaign = campaigns[_campaignId];
+        require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for deleting
+
+        payable(msg.sender).transfer(contribution);
+
+        campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
+        emit Refunded(_campaignId, msg.sender, contribution);
+    }
+
+    function getContribution(uint256 _campaignId, address _contributor) public view returns (uint256) {
         return campaigns[_campaignId].contributions[_contributor];
     }
 

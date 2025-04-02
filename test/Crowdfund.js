@@ -26,6 +26,16 @@ describe("Crowdfund", ()=>{
 		return { owner, signer1, crowdfund, campaignId };
 	}
 
+	async function fundCampaignFixture() {
+		const { owner, signer1, crowdfund, campaignId } = await loadFixture(createCampaignFixture);
+
+		const amount = ethers.parseEther("5");
+		const tx = await crowdfund.fundCampaign(campaignId, {value: amount});
+		await tx.wait();
+
+		return { owner, signer1, crowdfund, campaignId, amount };
+	}
+
 	describe ("Creating campaign", ()=>{
 		it ("Should emit create event", async ()=>{
 			const { crowdfund } = await loadFixture(deployContractFixture);
@@ -53,6 +63,33 @@ describe("Crowdfund", ()=>{
 
 			const count2 = await crowdfund.campaignCount();
 			assert(count2 - count1 === 3n);
+		});
+
+		it ("Should be reverted if max campaigns count(3) reached", async ()=>{
+			const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+			
+			const tx1 = crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			const tx2 = crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			const tx3 = crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			
+			await Promise.all([tx1, tx2, tx3])
+
+			await expect(crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration))
+				.to.be.revertedWith("Max campaigns reached. Close some to create new ones");
+		});
+
+		it ("Should not revert if is owner and max campaigns count(3) reached", async ()=>{
+			const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+			
+			const tx1 = crowdfund.createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			const tx2 = crowdfund.createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			const tx3 = crowdfund.createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			const tx4 = crowdfund.createCampaign(metadataUrl, goal, duration).then((tx)=> tx.wait());
+			
+			await Promise.all([tx1, tx2, tx3, tx4]);
+
+			await expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+				.not.to.be.reverted;
 		});
 
 		it("Should be reverted if duration is less than MIN_DURATION", async function () {
@@ -128,19 +165,23 @@ describe("Crowdfund", ()=>{
 			await expect(crowdfund.fundCampaign(campaignId, {value: amount}))
 				.to.be.revertedWith("Campaign expired");
 		});
+
+		it("Should revert if campaign is closed(funds withdrawn)", async () => {
+			const { crowdfund, campaignId } = await loadFixture(createCampaignFixture);
+			const amount = ethers.parseEther("15");
+			const tx = await crowdfund.fundCampaign(campaignId, {value: amount});
+			await tx.wait();
+			const tx2 = await crowdfund.withdrawFunds(campaignId);
+			await tx2.wait();
+
+			await expect(crowdfund.fundCampaign(campaignId, {value: amount}))
+				.to.be.revertedWith("Campaign is closed");
+		});
+
+		// TODO: revert if stopped
 	});
 
 	describe("Withdraw funds", () => {
-		async function fundCampaignFixture() {
-			const { owner, signer1, crowdfund, campaignId } = await loadFixture(createCampaignFixture);
-
-			const amount = ethers.parseEther("5");
-			const tx = await crowdfund.fundCampaign(campaignId, {value: amount});
-			await tx.wait();
-
-			return { owner, signer1, crowdfund, campaignId, amount };
-		}
-
 		it("Should update balances after withdrawing (one backer)", async () => {
 			const {owner, crowdfund, campaignId} = await loadFixture(fundCampaignFixture);
 
@@ -188,6 +229,15 @@ describe("Crowdfund", ()=>{
 				.to.be.revertedWith("Only creator can withdraw");
 		});
 
+		it("Should revert if campaign is closed(funds already withdrawn)", async () => {
+			const {crowdfund, campaignId} = await loadFixture(fundCampaignFixture);
+			await time.increase(duration);
+			await crowdfund.withdrawFunds(campaignId);
+
+			await expect(crowdfund.withdrawFunds(campaignId))
+				.to.be.revertedWith("Campaign is closed. Funds already withdrawn");
+		});
+
 		it("Should not revert if not expired but goal reached", async () => {
 			const {crowdfund, campaignId} = await loadFixture(fundCampaignFixture);
 
@@ -214,4 +264,156 @@ describe("Crowdfund", ()=>{
 				.to.be.revertedWith("Wait for campaign to expire or reach funding goal");
 		})
 	})
+
+	describe("Refunding", () => {
+		describe("Stopping campaign", () => {
+			it("Should stop and close campaign", async () => {
+				const {crowdfund, campaignId} = await loadFixture(fundCampaignFixture);
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+				
+				const closed = await crowdfund.campaigns(campaignId);
+				const stopped = await crowdfund.stoppedCampaigns(campaignId);
+				assert(stopped, "Campaign not stooped");
+				assert(closed[7], "Campaign not closed"); // isStopped is at index 7
+			});
+
+			it("Should revert if is not admin and not creator", async () => {
+				const {crowdfund} = await loadFixture(deployContractFixture);
+				let [owner, signer1, signer2] = await ethers.getSigners();
+				const tx = await crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration);
+				await tx.wait();
+
+				const campaignId = (await crowdfund.campaignCount()) - 1n;
+				await expect(crowdfund.connect(signer2).stop(campaignId))
+					.to.be.revertedWith("Only creator or admin can stop a campaign");
+			});
+
+			// TODO: should revert if already stopped or closed
+
+			it("Should not revert if is campaign creator", async () => {
+				const {crowdfund} = await loadFixture(deployContractFixture);
+				let [owner, signer1] = await ethers.getSigners();
+				const tx = await crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration);
+				await tx.wait();
+
+				const campaignId = (await crowdfund.campaignCount()) - 1n;
+				await expect(crowdfund.connect(signer1).stop(campaignId))
+					.not.to.be.reverted;
+			});
+
+			it("Should not revert if is admin", async () => {
+				const {crowdfund} = await loadFixture(deployContractFixture);
+				let [owner, signer1] = await ethers.getSigners();
+				const tx = await crowdfund.connect(signer1).createCampaign(metadataUrl, goal, duration);
+				await tx.wait();
+
+				const campaignId = (await crowdfund.campaignCount()) - 1n;
+				await expect(crowdfund.connect(owner).stop(campaignId))
+					.not.to.be.reverted;
+			});
+
+			it("Should revert if campaign has expired", async () => {
+				const { crowdfund, campaignId, owner } = await loadFixture(createCampaignFixture);
+				const expiryTime = (await time.latest()) + duration
+				await time.increase(duration);
+				
+				await expect(crowdfund.connect(owner).stop(campaignId))
+					.to.be.revertedWith("Campaign has expired");
+			});
+
+			it("Should emit stopped event", async () => {
+				const { crowdfund, campaignId } = await loadFixture(createCampaignFixture);
+				
+				await expect(crowdfund.stop(campaignId))
+					.to.emit(crowdfund, "Stopped");
+			});
+		});
+
+		describe("Taking refund", () => {
+			it("Should revert if campaign is not stopped", async () => {
+				const { crowdfund, campaignId } = await loadFixture(fundCampaignFixture);
+				
+				await expect(crowdfund.takeRefund(campaignId))
+					.to.be.revertedWith("Refund is only available for stopped campaigns");
+			});
+
+			it("Should revert if user has not made contribution", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				await expect(crowdfund.connect(signer1).takeRefund(campaignId))
+					.to.be.revertedWith("No funds available for refund");
+			});
+
+			// TODO: not revert if user has made contribution
+
+			it("Should revert if is creator", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				await expect(crowdfund.takeRefund(campaignId))
+					.to.be.revertedWith("Campaign creator can't take refund");
+			});
+
+			it("Should update balances after refunding", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const amount = ethers.parseEther("6.32");
+				const fundingTx = await crowdfund.connect(signer1).fundCampaign(campaignId, {value:amount});
+				await fundingTx.wait();
+
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				await expect(crowdfund.connect(signer1).takeRefund(campaignId))
+					.to.changeEtherBalances([crowdfund, signer1], [-amount, amount]);
+			});
+
+			it("Should emit refunded event", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const amount = ethers.parseEther("6.32");
+				const fundingTx = await crowdfund.connect(signer1).fundCampaign(campaignId, {value:amount});
+				await fundingTx.wait();
+
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				await expect(crowdfund.connect(signer1).takeRefund(campaignId))
+					.to.emit(crowdfund, "Refunded");
+			});
+
+			it("Should set contribution to 1 after taking refund", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const amount = ethers.parseEther("6.32");
+				const fundingTx = await crowdfund.connect(signer1).fundCampaign(campaignId, {value:amount});
+				await fundingTx.wait();
+
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				const tx2 = await crowdfund.connect(signer1).takeRefund(campaignId);
+				await tx2.wait();
+
+				expect(await crowdfund.connect(signer1).getContribution(campaignId, signer1.address)).to.equal(1);
+			});
+
+			it("Should revert if trying to re-refund", async () => {
+				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
+				const amount = ethers.parseEther("6.32");
+				const fundingTx = await crowdfund.connect(signer1).fundCampaign(campaignId, {value:amount});
+				await fundingTx.wait();
+
+				const tx = await crowdfund.stop(campaignId);
+				await tx.wait();
+
+				const tx2 = await crowdfund.connect(signer1).takeRefund(campaignId);
+				await tx2.wait();
+
+				await expect(crowdfund.connect(signer1).takeRefund(campaignId))
+					.to.be.reverted;
+			});
+		});
+	});
 });
