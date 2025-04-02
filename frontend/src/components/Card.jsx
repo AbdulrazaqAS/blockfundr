@@ -19,6 +19,14 @@ function timeRemaining(deadlineInSeconds) {
     return {days, hours, minutes, seconds};
 }
 
+function getTimeRemaining(deadlineInSeconds) {
+    const time = timeRemaining(deadlineInSeconds);
+    if (time.days) return ["Days", time.days];
+    if (time.hours) return ["Hrs", time.hours];
+    if (time.minutes) return ["Mins", time.minutes];
+    return ["Secs", time.seconds];
+}
+
 function getPercentage(part, total) {
     if (total === 0) return null;
     return Math.floor((part / total) * 100);
@@ -29,6 +37,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
     const [metadata, setMetadata] = useState(null);
 
     const defaultDescription = "Blockchain funding campaign. Donate for good. Donate for DeFi.";
+    const timeRemainingStr = getTimeRemaining(deadline.toString()); // returns [str, int]
 
     async function loadMetadata(url) {
         try {
@@ -62,7 +71,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
                     <li><strong>{formatEther(fundsRaised).toString().slice(0, 7)} eth</strong><br />raised</li>
                     <li className="divider-line"></li>
                     {/* If days < 0, show hours. You get it. */}
-                    <li><strong>{timeRemaining(deadline.toString()).days} days</strong><br />remaining</li>
+                    <li><strong>{timeRemainingStr[1]} {timeRemainingStr[0]}</strong><br />remaining</li>
                 </ul>
                 <progress value={fundsRaised.toString()} max={goal.toString()} />
                 <p>{getPercentage(fundsRaised.toString(), goal.toString())}% financed</p>

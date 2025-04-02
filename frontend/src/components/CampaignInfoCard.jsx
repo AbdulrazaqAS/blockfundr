@@ -2,6 +2,24 @@ import {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import ErrorMessage from "./ErrorMessage";
 
+function timeRemaining(deadlineInSeconds) {
+  const now = Math.floor(Date.now() / 1000); // Current time in seconds
+  let remaining = deadlineInSeconds - now;
+
+  if (remaining <= 0) {
+      return {days:0, hours:0, minutes:0, seconds:0};
+  }
+
+  const days = Math.floor(remaining / (24 * 3600));
+  remaining %= 24 * 3600;  // Factor out days
+  const hours = Math.floor(remaining / 3600);
+  remaining %= 3600;  // Factor out hours
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+
+  return {days, hours, minutes, seconds};
+}
+
 const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -9,6 +27,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [fundsHistory, setFundsHistory] = useState([]);
   const [isOwner, setIsOwner] = useState(signer && signer.address === campaign.creator);
   const [error, setError] = useState(null);
+  const [timeRemainingStr, setTimeRemainingStr] = useState("");
   
   const {
     id,
@@ -25,7 +44,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       image
     }
   } = campaign;
-  
+
   async function sendFunds(amount){
     let newSigner = signer;
     if (!newSigner) {
@@ -107,11 +126,13 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     return eventsObjs;
   }
 
-  const timeRemaining = Math.max(0, Math.floor((deadline.toString() * 1000 - Date.now()) / 1000 / 60 / 60 / 24));
-
-  useEffect(() => {
-
-  });
+  function getTimeRemainingStr(deadlineInSeconds){
+    const timeRemainingObj = timeRemaining(deadline.toString());
+    return  timeRemainingObj.days + " days " + 
+            timeRemainingObj.hours + " hrs " +
+            timeRemainingObj.minutes + " mins " +
+            timeRemainingObj.seconds + " secs";
+  }
 
   useEffect(() => {
     async function fetchFundingHistory() {
@@ -125,10 +146,18 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     }
 
     fetchFundingHistory();
-    setError(null);
     if (signer)
       setIsOwner(signer.address === campaign.creator);
     else setIsOwner(false);
+
+    setTimeRemainingStr(getTimeRemainingStr(deadline));
+    const updateTimeInterval = setInterval(()=>{
+      setTimeRemainingStr(getTimeRemainingStr(deadline));
+    }, 1000);
+
+    setError(null);
+
+    return () => clearInterval(updateTimeInterval);
   }, [campaign]);
 
   useEffect(() => {
@@ -149,7 +178,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <p><strong>Location:</strong> {location.city}, {location.country}</p>
           <p><strong>Goal:</strong> {ethers.formatEther(goal)} ETH</p>
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
-          <p><strong>Time Remaining:</strong> {timeRemaining} days</p>
+          <p><strong>Time Remaining:</strong> {timeRemainingStr}</p>
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
         </div>
         <div className="campaignInfoCard-topright">
