@@ -33,7 +33,6 @@ function App() {
   const [campaigns, setCampaigns] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
-  const [deployed, setDeployed] = useState(false);
   const [showCampaignInfo, setShowCampaignInfo] = useState(null);
   const [walletError, setWalletError] = useState(null);
   const [initError, setInitError] = useState(null);

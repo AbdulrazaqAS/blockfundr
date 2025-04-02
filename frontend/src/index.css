@@ -37,6 +37,7 @@ body {
   height: fit-content;
   background-color: rgb(247, 76, 76);
   padding: 5px 10px;
+  overflow: hidden;
 }
 
 .red-p {
@@ -230,13 +231,13 @@ progress {
 
 .campaignInfoCard-middle button:hover {
   background-color: rgb(94, 37, 128);
-  width: 25%;
+  width: 23%;
 }
 
 .campaignInfoCard-middle input {
   font-size: x-large;
   border-radius: 10px;
-  width: 35%;
+  width: 30%;
   padding-left: 10px;
   height: 40px;
 }

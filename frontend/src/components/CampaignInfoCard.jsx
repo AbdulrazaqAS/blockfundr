@@ -1,10 +1,14 @@
 import {useEffect, useState} from "react";
 import {ethers} from "ethers";
+import ErrorMessage from "./ErrorMessage";
 
 const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [fundsHistory, setFundsHistory] = useState([]);
+  const [isOwner, setIsOwner] = useState(signer && signer.address === campaign.creator);
+  const [error, setError] = useState(null);
   
   const {
     id,
@@ -15,12 +19,13 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     fundsRaised,
     totalContributors,
     location,
+    isClosed=false,
     metadata: {
       description,
       image
     }
   } = campaign;
-  
+  console.log("Campaign:", campaign);
   async function sendFunds(amount){
     let newSigner = signer;
     if (!newSigner) {
@@ -40,7 +45,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       const amountInWei = ethers.parseEther(amount);
       const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
       await tx.wait();
-      console.log("Transaction successful:", tx.transactionHash);
+      console.log("Transaction successful:", tx);
       setFundAmount(0);
       // TODO: Show link to transaction on etherscan
       // window.open(`https://etherscan.io/tx/${tx.transactionHash}`, "_blank");
@@ -51,8 +56,37 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     }
   }
 
+  async function withdraw() {
+    let newSigner = signer;
+    if (!newSigner) {
+      try {
+        newSigner = await provider.getSigner(0);
+        console.log("Connected Signer:", newSigner);
+        setSigner(newSigner);
+      } catch (error) {
+        console.error("Error connecting signer:", error);
+        setSigner(null);
+        return;
+      }
+    }
+
+    try {
+      setIsWithdrawing(true);
+      console.log("Id", id);
+      const campaign = await crowdfundContract.campaigns(0);
+      console.log("Withdraw campaign ID Details:", campaign);
+      const tx = await crowdfundContract.connect(newSigner).withdrawFunds(Number(id));
+      await tx.wait();
+      console.log("Withdraw successful:", tx);
+    } catch (error) {
+      console.error("Error withdrawing funds:", error);
+      setError(error);
+    } finally {
+      setIsWithdrawing(false);
+    }
+  }
+
   async function getFundedEvents(campaignId) {
-    // Fetch past `Funded` events related to campaignId
     const events = await crowdfundContract.queryFilter(
       crowdfundContract.filters.Funded(campaignId)
     );
@@ -76,6 +110,10 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const timeRemaining = Math.max(0, Math.floor((deadline.toString() * 1000 - Date.now()) / 1000 / 60 / 60 / 24));
 
   useEffect(() => {
+
+  });
+
+  useEffect(() => {
     async function fetchFundingHistory() {
       try {
         const fundedEvents = await getFundedEvents(id);
@@ -87,10 +125,21 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     }
 
     fetchFundingHistory();
+    setError(null);
+    if (signer)
+      setIsOwner(signer.address === campaign.creator);
+    else setIsOwner(false);
   }, [campaign]);
+
+  useEffect(() => {
+    if (signer)
+      setIsOwner(signer.address === campaign.creator);
+    else setIsOwner(false);
+  }, [signer]);
 
   return (
     <div className="campaignInfoCard">
+      {error && <ErrorMessage message={error.message} setErrorMessage={setError}/>}
       <h1>{title}  #{id}</h1>
       <div className="campaignInfoCard-top">
         <div className="campaignInfoCard-topleft">
@@ -109,9 +158,16 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       </div>
       <div className="campaignInfoCard-middle">
         <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
-        <button disabled={isSending || fundAmount <= 0} onClick={() => sendFunds(fundAmount)}>
-          {isSending ? "Sending..." : "Send Funds"}
-        </button>
+        <div className="camapignInfo-buttons" style={{display: "inline"}}>
+          <button disabled={isSending || fundAmount <= 0 || isClosed} onClick={() => sendFunds(fundAmount)}>
+            {isSending ? "Sending..." : "Send Funds"}
+          </button>
+          {isOwner && (
+            <button disabled={isSending || isClosed || isWithdrawing} onClick={withdraw}>
+              {isWithdrawing ? "Withdrawing..." : isClosed ? "Closed" : "Withdraw"}
+            </button>
+          )}
+        </div>
         {isSending && <p className="red-p">Please don't close this card</p>}
       </div>
       <br />
