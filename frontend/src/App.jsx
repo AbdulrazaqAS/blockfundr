@@ -5,7 +5,6 @@ import { ethers } from "ethers";
 import crowdfundArtifact from "./contracts/Crowdfund.json";
 import contractAddress from "./contracts/contract-address.json";
 
-
 import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
 import NewCampaignForm from './components/NewCampaignForm.jsx';
@@ -15,13 +14,6 @@ import ErrorMessage from './components/ErrorMessage.jsx';
 import {testCampaign} from './components/CampaignInfoCard';
 
 const HARDHAT_NETWORK_ID = '31337';
-const PRIVATE_KEY = import.meta.env.VITE_Private_Key0;
-
-// const provider = ethers.getDefaultProvider("http://localhost:8545/");
-// const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-//TODO: What is the contract is not yet deployed
-// const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, wallet);
-// const crowdfundContract = new ethers.Contract(contractAddress.crowdfund, crowdfundArtifact.abi, provider);
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
@@ -269,6 +261,7 @@ function App() {
       <NavBar  ref={campaignInfoRef}
         walletDetected={walletDetected}
         address={address}
+        contractAddress={contractAddress.Crowdfund}
         provider={provider}
         signer={signer}
         setSigner={setSigner}

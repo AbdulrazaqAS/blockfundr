@@ -25,7 +25,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       image
     }
   } = campaign;
-  console.log("Campaign:", campaign);
+  
   async function sendFunds(amount){
     let newSigner = signer;
     if (!newSigner) {
@@ -186,7 +186,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           {[...fundsHistory].reverse().map((historyObj, index) => (
             <tr key={index}>
               <td>{historyObj.backer}</td>
-              <td>{historyObj.amount}</td>
+              <td>{historyObj.amount.toString().slice(0, 12)}</td>
               <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
             </tr>
           ))}
