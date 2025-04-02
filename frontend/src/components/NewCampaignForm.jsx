@@ -38,7 +38,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         setMinDuration(arr[0]);
         setMinGoal(arr[1]);
 
-        // bigint => number won't lose precision here
+        // bigint => number won't lose precision here. Added one day to account for passed hrs of the current day.
         const minSeconds = (Date.now() / 1000) + Number(arr[0]) + (24 * 60 * 60);
         const minDate = new Date(minSeconds * 1000).toISOString().split("T")[0];
         setDeadline(minDate);
@@ -81,14 +81,13 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   }
 
   const uploadToIPFS = async () => {
-    if (!image || !description) {
-      alert("Please provide an image and a description.");
-      return null;
-    }
+    // if (!image || !description) {
+    //   alert("Please provide an image and a description.");
+    //   return null;
+    // }
 
-    // setLoadingNewCampaign(true);
     try {
-      // 1. Upload Image
+      // Upload Image
       const formData = new FormData();
       formData.append("file", image);
 
@@ -102,9 +101,11 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
 
       const imageUrl = `https://gateway.pinata.cloud/ipfs/${imgResponse.data.IpfsHash}`;
 
-      // 2. Upload JSON metadata (description)
+      // Upload JSON metadata
       const metadata = {
+        title,
         description,
+        location,
         image: imageUrl,
       };
 
@@ -112,31 +113,30 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       const fileName = `campaign_metadata_${totalCampaigns}`;
 
       const jsonResponse = await axios.post(
-           "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-           {
-               pinataContent: metadata,
-               pinataMetadata: {
-                   name: fileName
-               }
-            },
-            {
-                headers: {
-                "Content-Type": "application/json",
-                pinata_api_key: pinataApiKey,
-                pinata_secret_api_key: pinataSecret,
-                },
-            }
-        );
+        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+        {
+          pinataContent: metadata,
+          pinataMetadata: {
+              name: fileName
+          }
+        },
+        {
+          headers: {
+          "Content-Type": "application/json",
+          pinata_api_key: pinataApiKey,
+          pinata_secret_api_key: pinataSecret,
+          },
+        }
+      );
 
       const metadataUrl = `https://gateway.pinata.cloud/ipfs/${jsonResponse.data.IpfsHash}`;
       setIpfsUrl(metadataUrl);
-    //   setLoadingNewCampaign(false);
 
       alert("File uploaded successfully!");
       return metadataUrl;
     } catch (error) {
+      setIpfsUrl("");
       console.error("Error uploading to IPFS:", error);
-      // setLoadingNewCampaign(false);
       alert("Failed to upload to IPFS.");
       return null;
     }
@@ -150,15 +150,18 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
 
     // TODO: WIll uisng ipfsUrl work here? If yes, use it and delete ipfsLink
     // TODO: Add a place to put ipfs link then hide image and description fields
-    // const ipfsLink = await uploadToIPFS();
-    const ipfsLinks = ["https://gateway.pinata.cloud/ipfs/QmbvNRUvX6387rg9SuzMHoTBnRxx2dKtUaqxXXcwZJtdXy",
-                      "https://gateway.pinata.cloud/ipfs/QmNRBiYMq5XBrJiNNxr3vs6Bswhvmizzs8Rcj8ihtmzuib",
-                      "https://gateway.pinata.cloud/ipfs/QmQmswLAdaQdqxTx9qy9Qve1tLKVwUZkq5hoBtE2WWqskn"]
-    const ipfsLink = ipfsLinks[Math.floor(Math.random() * ipfsLinks.length)];
+
+    const ipfsLink = await uploadToIPFS();
     if (!ipfsLink){
       setLoadingNewCampaign(false);
       return;
     }
+
+    console.log("IPFS Link:", ipfsLink, ipfsUrl);
+    const ipfsLinks = ["https://gateway.pinata.cloud/ipfs/QmbvNRUvX6387rg9SuzMHoTBnRxx2dKtUaqxXXcwZJtdXy",
+                      "https://gateway.pinata.cloud/ipfs/QmNRBiYMq5XBrJiNNxr3vs6Bswhvmizzs8Rcj8ihtmzuib",
+                      "https://gateway.pinata.cloud/ipfs/QmQmswLAdaQdqxTx9qy9Qve1tLKVwUZkq5hoBtE2WWqskn"]
+    // const ipfsLink = ipfsLinks[Math.floor(Math.random() * ipfsLinks.length)];
 
     // TODO: Delete uploaded ifps file if can't create new campaign
     const duration = calculateDuration(deadline);
@@ -173,11 +176,16 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     console.log("New campaign created successfully:", txReceipt);
 
     setLoadingNewCampaign(false);
-    setImage("");
-    setTitle("");
-    setDescription("");
-    setGoal("");
-    setDeadline("");
+    // setImage("");
+    // setTitle("");
+    // setDescription("");
+    // setLocation("");
+    // setGoal(formatEther(minGoal));
+    
+    // bigint => number won't lose precision here. Added one day to account for passed hrs of the current day.
+    const minSeconds = (Date.now() / 1000) + Number(minDuration) + (24 * 60 * 60);
+    const minDate = new Date(minSeconds * 1000).toISOString().split("T")[0];
+    // setDeadline(minDate);
   };
 
   // TODO: Implement minimum for goal and deadline
@@ -188,22 +196,22 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <input type="file" accept="image/*" onChange={handleFileChange} required/>
         </div>
         
         <div className="formFieldBox">
             <label>Title</label>
-            <input type="text" value={title} placeholder="Enter campaign title..." onChange={(e) => setTitle(e.target.value)} />
+            <input type="text" value={title} placeholder="Enter campaign title..." onChange={(e) => setTitle(e.target.value)} required/>
         </div>
 
         <div className="formFieldBox">
             <label>Description</label>
-            <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} />
+            <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} required/>
         </div>
 
         <div className="formFieldBox">
             <label>Location</label>
-            <input minLength="4" maxLength="20" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <input minLength="4" maxLength="20" value={location} placeholder="City, Country" onChange={(e) => setLocation(e.target.value)} required/>
         </div>
 
         <div className="formFieldBox">

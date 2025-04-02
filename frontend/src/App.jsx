@@ -11,7 +11,6 @@ import NewCampaignForm from './components/NewCampaignForm.jsx';
 import CampaignInfoCard from './components/CampaignInfoCard';
 import NoWalletDetected from './components/NoWalletDetected';
 import ErrorMessage from './components/ErrorMessage.jsx';
-import {testCampaign} from './components/CampaignInfoCard';
 
 const HARDHAT_NETWORK_ID = '31337';
 
@@ -291,7 +290,7 @@ function App() {
       {
         showCampaignInfo && (
           <CampaignInfoCard
-            campaign={{...testCampaign, ...showCampaignInfo, ...campaigns[showCampaignInfo.id]}}
+            campaign={{...showCampaignInfo, ...campaigns[showCampaignInfo.id]}}
             crowdfundContract={crowdfundContract}
             signer={signer}
             setSigner={setSigner}

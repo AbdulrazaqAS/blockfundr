@@ -29,22 +29,24 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
-  
+
   const {
     id,
-    title,
     creator,
     goal,
     deadline,
     fundsRaised,
     totalContributors,
-    location,
     isClosed=false,
-    metadata: {
-      description,
-      image
-    }
+    metadata,
   } = campaign;
+
+  const {
+    description="Error loading description",
+    image="blockfundr_profile.png",
+    title="Error loading title",
+    location="Error loading location",
+  } = metadata || {};
 
   async function sendFunds(amount){
     let newSigner = signer;
@@ -190,10 +192,10 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <h3><u>Campaign Description</u></h3>
           <p>{description}</p>
           <p><strong>Creator:</strong> {creator}</p>
-          <p><strong>Location:</strong> {location.city}, {location.country}</p>
+          <p><strong>Location:</strong> {location}</p>
           <p><strong>Goal:</strong> {ethers.formatEther(goal)} ETH</p>
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
-          {isClosed && <p><strong>Withrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
+          {isClosed && <p><strong>Withdrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
           {/* TODO: Show campaign duration */}
           <p><strong>Time Remaining:</strong> {timeRemainingStr}</p>
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
@@ -242,11 +244,4 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   );
 };
 
-export default CampaignDetails;
-
-/* Test Campaign Object */
-export const testCampaign = {
-  title: "Solar Power for Rural Schools",
-  // description: "Help provide clean energy to schools in remote areas. This campaign aims to install solar panels in rural schools to provide sustainable and uninterrupted electricity for students.",
-  location: { city: "Nairobi", country: "Kenya" },
-};
+export default CampaignDetails

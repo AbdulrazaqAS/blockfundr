@@ -36,7 +36,7 @@ function getPercentage(part, total) {
 function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
-    const defaultDescription = "Blockchain funding campaign. Donate for good. Donate for DeFi.";
+    const defaultDescription = "Error loading description. Try refreshing.";
     const timeRemainingStr = getTimeRemaining(deadline.toString()); // returns [str, int]
 
     async function loadMetadata(url) {
@@ -47,14 +47,17 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
             return metadata;
         } catch (error) {
             console.error("Error loading metadata:", error);
+            return null;
         }
     }
+
     function handleClick() {
         setShowCampaignInfo({id, metadata});
         scrollToCampaignInfo();
     }
 
     useEffect(() => {
+        console.log("MetaData", metadataUrl.length);
         loadMetadata(metadataUrl).then((val) => {
             setMetadata(val);
         });
@@ -70,7 +73,6 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
                 <ul>
                     <li><strong>{formatEther(fundsRaised).toString().slice(0, 7)} eth</strong><br />raised</li>
                     <li className="divider-line"></li>
-                    {/* If days < 0, show hours. You get it. */}
                     <li><strong>{timeRemainingStr[1]} {timeRemainingStr[0]}</strong><br />remaining</li>
                 </ul>
                 <progress value={fundsRaised.toString()} max={goal.toString()} />
