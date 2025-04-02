@@ -28,6 +28,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [isOwner, setIsOwner] = useState(signer && signer.address === campaign.creator);
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
+  const [withdrawable, setWithdrawable] = useState(0);
   
   const {
     id,
@@ -55,6 +56,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         } catch (error) {
           console.error("Error connecting signer:", error);
           setSigner(null);
+          setError(error);
           return;
         }
     }
@@ -70,6 +72,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       // window.open(`https://etherscan.io/tx/${tx.transactionHash}`, "_blank");
     } catch (error) {
       console.error("Error sending funds:", error);
+      setError(error);
     } finally {
       setIsSending(false);
     }
@@ -126,6 +129,17 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     return eventsObjs;
   }
 
+  async function getWithdrawableAmount(){
+    try {
+      const withdrawableAmount = await crowdfundContract.calculateWithdrawAmount(id);
+      console.log("Withdrawable amount:", withdrawableAmount.toString());
+      setWithdrawable(ethers.formatEther(withdrawableAmount));
+    } catch (error){
+      console.error("Error fetching withdrawable amount:", error);
+      setWithdrawable(0);
+    }
+  }
+
   function getTimeRemainingStr(deadlineInSeconds){
     const timeRemainingObj = timeRemaining(deadline.toString());
     return  timeRemainingObj.days + " days " + 
@@ -146,6 +160,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     }
 
     fetchFundingHistory();
+    getWithdrawableAmount();
     if (signer)
       setIsOwner(signer.address === campaign.creator);
     else setIsOwner(false);
@@ -178,6 +193,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <p><strong>Location:</strong> {location.city}, {location.country}</p>
           <p><strong>Goal:</strong> {ethers.formatEther(goal)} ETH</p>
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
+          {isClosed && <p><strong>Withrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
+          {/* TODO: Show campaign duration */}
           <p><strong>Time Remaining:</strong> {timeRemainingStr}</p>
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
         </div>
@@ -189,7 +206,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
         <div className="camapignInfo-buttons" style={{display: "inline"}}>
           <button disabled={isSending || fundAmount <= 0 || isClosed} onClick={() => sendFunds(fundAmount)}>
-            {isSending ? "Sending..." : "Send Funds"}
+            {isSending ? "Sending..." : isClosed ? "Closed" : "Send Funds"}
           </button>
           {isOwner && (
             <button disabled={isSending || isClosed || isWithdrawing} onClick={withdraw}>
