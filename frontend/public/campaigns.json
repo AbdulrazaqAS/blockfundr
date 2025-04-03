@@ -1,113 +1,83 @@
 [
-    {
-      "title": "Solar-Powered Water Pumps for Rural Farmers",
-      "goal": 50000,
-      "duration": 60,
-      "description": "Providing clean water access to rural farmers using solar-powered pumps.",
-      "long_description": "Many farmers in remote areas struggle with irrigation due to a lack of electricity and water access. This campaign aims to install solar-powered water pumps to improve agricultural productivity and provide clean drinking water to communities.",
-      "location": {
-        "city": "Kano",
-        "country": "Nigeria"
-      }
-    },
-    {
-      "title": "AI-Powered Learning Platform for Kids",
-      "goal": 100000,
-      "duration": 90,
-      "description": "An AI-based education platform to help children learn interactively.",
-      "long_description": "This project focuses on building an AI-powered learning app tailored for children aged 6-12, making education fun and engaging through interactive games, quizzes, and adaptive learning.",
-      "location": {
-        "city": "San Francisco",
-        "country": "USA"
-      }
-    },
-    {
-      "title": "Eco-Friendly Packaging Startup",
-      "goal": 75000,
-      "duration": 45,
-      "description": "Developing biodegradable packaging to reduce plastic waste.",
-      "long_description": "Plastic pollution is a growing environmental crisis. Our startup aims to create sustainable, compostable, and biodegradable packaging solutions for businesses to help reduce waste and protect the planet.",
-      "location": {
-        "city": "Berlin",
-        "country": "Germany"
-      }
-    },
-    {
-      "title": "3D-Printed Prosthetics for Amputees",
-      "goal": 60000,
-      "duration": 50,
-      "description": "Affordable, custom 3D-printed prosthetics for people in need.",
-      "long_description": "Millions of people worldwide lack access to affordable prosthetic limbs. We use 3D printing technology to produce high-quality, low-cost prosthetics that restore mobility and independence.",
-      "location": {
-        "city": "Nairobi",
-        "country": "Kenya"
-      }
-    },
-    {
-      "title": "Blockchain-Based Land Ownership Registry",
-      "goal": 150000,
-      "duration": 120,
-      "description": "A secure blockchain platform for verifying land ownership.",
-      "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
-      "location": {
-        "city": "Bangalore",
-        "country": "India"
-      }
-    },
-    {
-      "title": "Electric Bike Sharing for Urban Areas",
-      "goal": 200000,
-      "duration": 80,
-      "description": "A network of electric bikes to reduce traffic congestion.",
-      "long_description": "Our electric bike-sharing initiative provides an eco-friendly transportation alternative, reducing carbon emissions and making commuting faster and more convenient in busy cities.",
-      "location": {
-        "city": "Amsterdam",
-        "country": "Netherlands"
-      }
-    },
-    {
-      "title": "Reforestation Project for Climate Action",
-      "goal": 50000,
-      "duration": 100,
-      "description": "Planting trees to combat deforestation and climate change.",
-      "long_description": "Deforestation is a major contributor to climate change. This campaign supports large-scale tree-planting efforts in deforested regions to restore ecosystems and promote sustainability.",
-      "location": {
-        "city": "Rio de Janeiro",
-        "country": "Brazil"
-      }
-    },
-    {
-      "title": "Community-Driven Food Bank Initiative",
-      "goal": 25000,
-      "duration": 40,
-      "description": "Providing food aid to families facing hunger and poverty.",
-      "long_description": "Food insecurity affects millions. Our community-led food bank initiative collects and distributes food to those in need, ensuring that no family goes hungry.",
-      "location": {
-        "city": "Johannesburg",
-        "country": "South Africa"
-      }
-    },
-    {
-      "title": "Space-Themed STEM Learning Kits for Schools",
-      "goal": 70000,
-      "duration": 70,
-      "description": "Inspiring kids to learn science through space exploration kits.",
-      "long_description": "We develop fun, interactive STEM learning kits designed to teach children about space, physics, and engineering, making science education more engaging and accessible.",
-      "location": {
-        "city": "London",
-        "country": "UK"
-      }
-    },
-    {
-      "title": "Mobile Health Clinics for Remote Villages",
-      "goal": 120000,
-      "duration": 90,
-      "description": "Bringing essential medical services to underserved communities.",
-      "long_description": "Many remote areas lack access to basic healthcare. Our mobile health clinics travel to these regions, providing free medical checkups, vaccinations, and essential medicines.",
-      "location": {
-        "city": "Hanoi",
-        "country": "Vietnam"
-      }
-    }
+  {
+    "title": "AI-Powered Learning Platform for Kids",
+    "goal": 2.5,
+    "duration": 30,
+    "description": "An AI-based education platform to help children learn interactively.",
+    "long_description": "This project focuses on building an AI-powered learning app tailored for children aged 6-12, making education fun and engaging through interactive games, quizzes, and adaptive learning.",
+    "location": "Abuja, Nigeria"
+  },
+  {
+    "title": "Solar-Powered Water Pumps for Rural Farmers",
+    "goal": 5,
+    "duration": 90,
+    "description": "Providing clean water access to rural farmers using solar-powered pumps.",
+    "long_description": "Many farmers in remote areas struggle with irrigation due to a lack of electricity and water access. This campaign aims to install solar-powered water pumps to improve agricultural productivity and provide clean drinking water to communities.",
+    "location": "Kano, Nigeria"
+  },
+  {
+    "title": "Affordable Housing for Low-Income Families",
+    "goal": 10,
+    "duration": 150,
+    "description": "Building affordable homes for families in need.",
+    "long_description": "This initiative focuses on constructing low-cost, sustainable housing for low-income families, providing them with safe and secure living conditions.",
+    "location": "Nigeria"
+  },
+  {
+    "title": "Eco-Friendly Packaging Startup",
+    "goal": 7.5,
+    "duration": 45,
+    "description": "Developing biodegradable packaging to reduce plastic waste.",
+    "long_description": "Plastic pollution is a growing environmental crisis. Our startup aims to create sustainable, compostable, and biodegradable packaging solutions for businesses to help reduce waste and protect the planet.",
+    "location": "Abuja, Nigeria"
+  },
+  {
+    "title": "3D-Printed Prosthetics for Amputees",
+    "goal": 10,
+    "duration": 75,
+    "description": "Affordable, custom 3D-printed prosthetics for people in need.",
+    "long_description": "Millions of people worldwide lack access to affordable prosthetic limbs. We use 3D printing technology to produce high-quality, low-cost prosthetics that restore mobility and independence.",
+    "location": "Nairobi, Kenya"
+  },
+  {
+    "title": "Blockchain-Based Land Ownership Registry",
+    "goal": 2,
+    "duration": 50,
+    "description": "A secure blockchain platform for verifying land ownership.",
+    "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
+    "location": "Lagos, Nigeria"
+  },
+  {
+    "title": "Reforestation Project for Climate Action",
+    "goal": 4.5,
+    "duration": 85,
+    "description": "Planting trees to combat deforestation and climate change.",
+    "long_description": "Deforestation is a major contributor to climate change. This campaign supports large-scale tree-planting efforts in deforested regions to restore ecosystems and promote sustainability.",
+    "location": "Niamey, Niger"
+  },
+  {
+    "title": "Community-Driven Food Bank Initiative",
+    "goal": 2.5,
+    "duration": 40,
+    "description": "Providing food aid to families facing hunger and poverty.",
+    "long_description": "Food insecurity affects millions. Our community-led food bank initiative collects and distributes food to those in need, ensuring that no family goes hungry.",
+    "location": "Kano, Nigeria"
+  },
+  {
+    "title": "Space-Themed STEM Learning Kits for Schools",
+    "goal": 5.5,
+    "duration": 70,
+    "description": "Inspiring kids to learn science through space exploration kits.",
+    "long_description": "We develop fun, interactive STEM learning kits designed to teach children about space, physics, and engineering, making science education more engaging and accessible.",
+    "location": "Johannesburg, South Africa"
+  },
+  {
+    "title": "Mobile Health Clinics for Remote Villages",
+    "goal": 6,
+    "duration": 100,
+    "description": "Bringing essential medical services to underserved communities.",
+    "long_description": "Many remote areas lack access to basic healthcare. Our mobile health clinics travel to these regions, providing free medical checkups, vaccinations, and essential medicines.",
+    "location": "Yobe, Nigeria"
+  }
 ]
   

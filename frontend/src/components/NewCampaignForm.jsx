@@ -25,6 +25,9 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [error, setError] = useState(null);
   const [minGoal, setMinGoal] = useState();
   const [minDuration, setMinDuration] = useState();
+  const [maxUserCampaigns, setMaxUserCampaigns] = useState(0);
+  const [userCampaigns, setUserCampaigns] = useState(0);
+  const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
 
   const pinataApiKey = import.meta.env.VITE_PINATA_API_KEY;
   const pinataSecret = import.meta.env.VITE_PINATA_API_SECRET;
@@ -49,6 +52,24 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       setError(error);
     }
   }, []);
+
+  useEffect(() => {
+    if (!signer) return;
+
+    try {
+      const userCampaigns = crowdfundContract.usersCampaigns(signer.address);
+      const maxUserCampaigns = crowdfundContract.MAX_CAMPAIGNS();
+      const deployerAddress = crowdfundContract.owner();
+      Promise.all([userCampaigns, maxUserCampaigns, deployerAddress]).then((arr)=>{
+        setUserCampaigns(arr[0]);
+        setMaxUserCampaigns(arr[1]);
+        setIsDeployer(arr[2] === signer.address);
+      });
+    } catch (error) {
+      console.error("Error reading values from contract:", error);
+      setError(error);
+    }
+  }, [signer]);
 
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
@@ -132,7 +153,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       const metadataUrl = `https://gateway.pinata.cloud/ipfs/${jsonResponse.data.IpfsHash}`;
       setIpfsUrl(metadataUrl);
 
-      alert("File uploaded successfully!");
+      alert("File uploaded to IPFS successfully!");
       return metadataUrl;
     } catch (error) {
       setIpfsUrl("");
@@ -188,11 +209,11 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     // setDeadline(minDate);
   };
 
-  // TODO: Implement minimum for goal and deadline
   return (
     <div id="newCampaignContainer">
       <form onSubmit={handleSubmit}>
         <h2>Create a New Campaign</h2>
+        {signer && !isDeployer && <p className="red-p">You are not the contract deployer. You can create only {maxUserCampaigns} campaigns. You have already created {userCampaigns} campaigns.</p>}
         {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
@@ -229,13 +250,14 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         <button type="submit" disabled={loadingNewCampaign || error || (minGoal && goal < formatEther(minGoal)) || (minDuration && calculateDuration(deadline) < minDuration)}>
           {loadingNewCampaign ? "Uploading..." : "Create Campaign"}
         </button>
+        {ipfsUrl && (
+          <p>
+            <br />
+            IPFS Link: <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">{ipfsUrl}</a>
+          </p>
+        )}
       </form>
 
-      {ipfsUrl && (
-        <p>
-          IPFS Link: <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">{ipfsUrl}</a>
-        </p>
-      )}
     </div>
   );
 }

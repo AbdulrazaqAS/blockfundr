@@ -14,8 +14,9 @@ contract Crowdfund {
         mapping(address => uint256) contributions;
     }
 
-    address owner;
+    address public owner;
     uint256 public campaignCount;
+    uint256 public contractBalance;
     mapping(uint256 => Campaign) public campaigns;
     mapping(address => uint256) public usersCampaigns;
     mapping(uint256 => bool) public stoppedCampaigns;
@@ -79,12 +80,15 @@ contract Crowdfund {
         require(!campaign.isClosed, "Campaign is closed. Funds already withdrawn");
         require(campaign.fundsRaised >= campaign.goal || block.timestamp > campaign.deadline, 
             "Wait for campaign to expire or reach funding goal");
-
+        // TODO: Admins can withdraw campaign funds after long time of creator inactivity
+        
         uint256 amount = (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
+        uint256 contractAmount = campaign.fundsRaised - amount;
 
         payable(msg.sender).transfer(amount);
+        contractBalance += contractAmount;  // Withdrawable/transferable by contract
         campaign.isClosed = true;
-        usersCampaigns[msg.sender]--;
+        usersCampaigns[msg.sender]--;  // TODO: Avoid setting it to zero to reduce gas
         emit Withdrawn(_campaignId, msg.sender, amount);
     }
 
@@ -99,6 +103,13 @@ contract Crowdfund {
         campaign.isClosed = true;
         usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--
 
+        // Penlaty for closing an ongoing campaign. To avoid malicious acts.
+        uint256 creatorContribution = getContribution(_campaignId, campaign.creator);
+        if (creatorContribution > 0) {
+            contractBalance += creatorContribution;
+            // No need to change the contributed amount to 0 since creators can't take refund
+        }
+
         emit Stopped(_campaignId, msg.sender == campaign.creator);
     }
 
@@ -107,10 +118,12 @@ contract Crowdfund {
         require(stoppedCampaigns[_campaignId], "Refund is only available for stopped campaigns");
         require(contribution > 1, "No funds available for refund"); // 1 because read below
         
+        // TODO: Contract can use a refund that is not taken after a long time.
         Campaign storage campaign = campaigns[_campaignId];
-        require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for deleting
+        require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for stopping
 
         payable(msg.sender).transfer(contribution);
+        campaign.fundsRaised -= contribution;
 
         campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
         emit Refunded(_campaignId, msg.sender, contribution);
@@ -127,7 +140,9 @@ contract Crowdfund {
 
     function withdraw(uint256 _amount) external {
         require(msg.sender == owner, "Only contract owner can withdraw");
+        require(_amount <= contractBalance, "No available withdrawable funds");
         payable(owner).transfer(_amount);
+        contractBalance -= _amount;
 
         emit ContractFundsWithdrawn(_amount);
     }
@@ -135,7 +150,9 @@ contract Crowdfund {
     function transfer(uint256 _amount, address _receiver) external {
         require(msg.sender == owner, "Only contract owner can transfer");
         require(_receiver != owner, "Owner should use withdraw function");
+        require(_amount <= contractBalance, "No available transferrable funds");
         payable(_receiver).transfer(_amount);
+        contractBalance -= _amount;
 
         emit ContractFundsTransferred(_receiver, _amount);
     }

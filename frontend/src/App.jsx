@@ -52,7 +52,7 @@ function App() {
       goal: campaign[3],
       deadline: campaign[4],
       fundsRaised: campaign[5],
-      contributors: campaign[6],
+      totalContributors: campaign[6],
       isClosed: campaign[7],
     }
 
