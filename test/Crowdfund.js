@@ -196,6 +196,8 @@ describe("Crowdfund", ()=>{
 
 		});
 
+		// TODO: should reduce the number of user campaigns by 1
+
 		it("Should update balances after withdrawing (many backers)", async () => {
 		    const { owner, signer1, crowdfund, campaignId, amount } = await loadFixture(fundCampaignFixture);
 		    const [, , signer2, signer3] = await ethers.getSigners();

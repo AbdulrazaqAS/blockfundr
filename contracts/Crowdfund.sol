@@ -20,7 +20,7 @@ contract Crowdfund {
     mapping(address => uint256) public usersCampaigns;
     mapping(uint256 => bool) public stoppedCampaigns;
 
-    uint256 public constant MIN_GOAL = 0.0005 ether;
+    uint256 public constant MIN_GOAL = 0.01 ether;
     uint256 public constant MIN_DURATION = 1 days;
     uint256 public constant WITHDRAW_PERCENT = 95;
     uint256 public constant MAX_CAMPAIGNS = 3;
@@ -84,6 +84,7 @@ contract Crowdfund {
 
         payable(msg.sender).transfer(amount);
         campaign.isClosed = true;
+        usersCampaigns[msg.sender]--;
         emit Withdrawn(_campaignId, msg.sender, amount);
     }
 
