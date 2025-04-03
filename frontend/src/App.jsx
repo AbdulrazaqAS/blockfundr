@@ -53,6 +53,7 @@ function App() {
       deadline: campaign[4],
       fundsRaised: campaign[5],
       contributors: campaign[6],
+      isClosed: campaign[7],
     }
 
     // Maybe in hardhat localhost, since blocks are not getting created until when a tx
@@ -70,7 +71,6 @@ function App() {
   }
 
   useEffect(() => {
-    let deployed = false;
     if (window.ethereum === undefined) setWalletDetected(false);
     else {
       try {
@@ -145,6 +145,7 @@ function App() {
             deadline: campaign[4],
             fundsRaised: campaign[5],
             totalContributors: campaign[6],
+            isClosed: campaign[7],
           }
 
           loadedCampaigns.push(campaignObj);
@@ -175,6 +176,7 @@ function App() {
           deadline: fundedCampaign[4],
           fundsRaised: fundedCampaign[5],
           totalContributors: fundedCampaign[6],
+          isClosed: fundedCampaign[7],
         }
         setCampaigns((prev) => {
           const updatedCampaigns = [...prev];
@@ -202,11 +204,6 @@ function App() {
   useEffect(() => {
     if (signer) {
       try {
-        // const getSigner = async () => {
-        //   const address = await signer.getAddress();
-        //   setAddress(address);
-        // }
-        // getSigner();
         setAddress(signer.address);
       } catch (error) {
         console.error("Error getting signer address:", error);

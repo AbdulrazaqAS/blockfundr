@@ -30,6 +30,8 @@ contract Crowdfund {
     event Withdrawn(uint256 campaignId, address indexed creator, uint256 amount);
     event Refunded(uint256 indexed campaignId, address indexed backer, uint256 amount);
     event Stopped(uint256 campaignId, bool byCreator);
+    event ContractFundsWithdrawn(uint256 amount);
+    event ContractFundsTransferred(address indexed receiver, uint256 amount);
 
     constructor () {
         owner = msg.sender;
@@ -94,6 +96,7 @@ contract Crowdfund {
 
         stoppedCampaigns[_campaignId] = true;
         campaign.isClosed = true;
+        usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--
 
         emit Stopped(_campaignId, msg.sender == campaign.creator);
     }
@@ -119,5 +122,20 @@ contract Crowdfund {
     function calculateWithdrawAmount(uint256 _campaignId) external view returns (uint256) {
         Campaign storage campaign = campaigns[_campaignId];
         return (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
+    }
+
+    function withdraw(uint256 _amount) external {
+        require(msg.sender == owner, "Only contract owner can withdraw");
+        payable(owner).transfer(_amount);
+
+        emit ContractFundsWithdrawn(_amount);
+    }
+
+    function transfer(uint256 _amount, address _receiver) external {
+        require(msg.sender == owner, "Only contract owner can transfer");
+        require(_receiver != owner, "Owner should use withdraw function");
+        payable(_receiver).transfer(_amount);
+
+        emit ContractFundsTransferred(_receiver, _amount);
     }
 }

@@ -37,10 +37,10 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     deadline,
     fundsRaised,
     totalContributors,
-    isClosed=false,
+    isClosed,
     metadata,
   } = campaign;
-
+ console.log("Campain details:", campaign);
   const {
     description="Error loading description",
     image="blockfundr_profile.png",

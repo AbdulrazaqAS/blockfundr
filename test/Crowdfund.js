@@ -181,7 +181,7 @@ describe("Crowdfund", ()=>{
 		// TODO: revert if stopped
 	});
 
-	describe("Withdraw funds", () => {
+	describe("Withdraw campaign funds", () => {
 		it("Should update balances after withdrawing (one backer)", async () => {
 			const {owner, crowdfund, campaignId} = await loadFixture(fundCampaignFixture);
 
@@ -290,6 +290,7 @@ describe("Crowdfund", ()=>{
 			});
 
 			// TODO: should revert if already stopped or closed
+			// TODO: should reduce the number of user campaigns by 1
 
 			it("Should not revert if is campaign creator", async () => {
 				const {crowdfund} = await loadFixture(deployContractFixture);
@@ -415,5 +416,54 @@ describe("Crowdfund", ()=>{
 					.to.be.reverted;
 			});
 		});
+	});
+
+	describe("Taking funds out of contract", () => {
+		describe("Withdraw contract funds", () => {
+			it("Should revert if not admin", async () => {
+				const { crowdfund, signer1 , amount} = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.connect(signer1).withdraw(amount / 2n))
+					.to.be.revertedWith("Only contract owner can withdraw");
+			});
+	
+			it("Should update balances", async () => {
+				const { crowdfund, amount, owner} = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.withdraw(amount / 2n))
+					.to.changeEtherBalances([owner, crowdfund], [amount / 2n, -amount / 2n]);
+			});
+
+			it("Should emit ContractFundsWithdrawn event", async () => {
+				const { crowdfund, amount } = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.withdraw(amount / 2n))
+					.to.emit(crowdfund, "ContractFundsWithdrawn");
+			});
+		});
+
+		describe("Transfer contract funds", () => {
+			it("Should revert if not admin", async () => {
+				const { crowdfund, signer1 , amount} = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.connect(signer1).transfer(amount / 2n, signer1.address))
+					.to.be.revertedWith("Only contract owner can transfer");
+			});
+			
+			it("Should revert if admin is the receiver", async () => {
+				const { crowdfund , amount, owner} = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.transfer(amount / 2n, owner))
+					.to.be.revertedWith("Owner should use withdraw function");
+			});
+
+			it("Should update balances", async () => {
+				const { crowdfund, amount, owner, signer1} = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.transfer(amount / 2n, signer1))
+					.to.changeEtherBalances([signer1, crowdfund], [amount / 2n, -amount / 2n]);
+			});
+
+			it("Should emit ContractFundsTransferred event", async () => {
+				const { crowdfund, amount, signer1 } = await loadFixture(fundCampaignFixture);
+				await expect(crowdfund.transfer(amount / 2n, signer1))
+					.to.emit(crowdfund, "ContractFundsTransferred");
+			});
+		});
+		
 	});
 });
