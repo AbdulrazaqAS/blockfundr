@@ -69,13 +69,15 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, 
                 <h3>By: {creator.slice(0, 7) + "....." + creator.slice(37)}</h3>
                 <p className="card-description">{metadata ? metadata.title : defaultTitle}</p>
                 <ul>
-                    <li><strong>{formatEther(fundsRaised).toString().slice(0, 7)} eth</strong><br />raised</li>
+                    <li><strong>{formatEther(fundsRaised).toString().slice(0, 7)} Eth</strong><br />raised</li>
                     <li className="divider-line"></li>
-                    <li><strong>{timeRemainingStr[1]} {timeRemainingStr[0]}</strong><br />remaining</li>
+                    {!isClosed ?
+                        (<li><strong>{timeRemainingStr[1]} {timeRemainingStr[0]}</strong><br />remaining</li>) :
+                        (<h1 className="card-closed-text">Closed</h1>)
+                    }
                 </ul>
                 <progress value={fundsRaised.toString()} max={goal.toString()} />
                 <p>{getPercentage(fundsRaised.toString(), goal.toString())}% financed</p>
-                {isClosed && <p className="red-p">Closed</p>}
             </div>
         </div>
 	)

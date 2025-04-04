@@ -102,11 +102,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   }
 
   const uploadToIPFS = async () => {
-    // if (!image || !description) {
-    //   alert("Please provide an image and a description.");
-    //   return null;
-    // }
-
     try {
       // Upload Image
       const formData = new FormData();
@@ -167,23 +162,19 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     e.preventDefault();
 
     setLoadingNewCampaign(true);
+    setIpfsUrl("");  // Clear previous IPFS URL
+    setError(null);  // Clear previous error
 
-    // TODO: WIll uisng ipfsUrl work here? If yes, use it and delete ipfsLink
     // TODO: Add a place to put ipfs link then hide image and description fields
-
     const ipfsLink = await uploadToIPFS();
     if (!ipfsLink){
       setLoadingNewCampaign(false);
       return;
     }
 
-    console.log("IPFS Link:", ipfsLink, ipfsUrl);
-    const ipfsLinks = ["https://gateway.pinata.cloud/ipfs/QmbvNRUvX6387rg9SuzMHoTBnRxx2dKtUaqxXXcwZJtdXy",
-                      "https://gateway.pinata.cloud/ipfs/QmNRBiYMq5XBrJiNNxr3vs6Bswhvmizzs8Rcj8ihtmzuib",
-                      "https://gateway.pinata.cloud/ipfs/QmQmswLAdaQdqxTx9qy9Qve1tLKVwUZkq5hoBtE2WWqskn"]
-    // const ipfsLink = ipfsLinks[Math.floor(Math.random() * ipfsLinks.length)];
+    console.log("IPFS Link:", ipfsLink);
+    // TODO: Delete uploaded ifps file if can't create new campaign. Just have a setUrl in the contract then only upload if the tx is successful.
 
-    // TODO: Delete uploaded ifps file if can't create new campaign
     const duration = calculateDuration(deadline);
     const goalInWei = parseEther(goal);
     const txReceipt = await newCampaign(ipfsLink, goalInWei, duration);
@@ -193,6 +184,16 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       alert("Failed to create new campaign. Please try again.");
       return;
     }
+
+    if (signer){ // signer maybe null if just connected by clicking the create campaign button.
+      crowdfundContract.usersCampaigns(signer.address).then((val)=>{
+        setUserCampaigns(val);
+      }).catch((error)=>{
+        console.error("Error reading user campaigns:", error);
+        setError(error);
+      });
+    }
+
     console.log("New campaign created successfully:", txReceipt);
 
     setLoadingNewCampaign(false);
@@ -221,12 +222,12 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         
         <div className="formFieldBox">
             <label>Title</label>
-            <input type="text" value={title} placeholder="Enter campaign title..." onChange={(e) => setTitle(e.target.value)} required/>
+            <input type="text" minLength="30" maxLength="70" value={title} placeholder="Enter campaign title..." onChange={(e) => setTitle(e.target.value)} required/>
         </div>
 
         <div className="formFieldBox">
             <label>Description</label>
-            <textarea value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} required/>
+            <textarea minLength="100" maxLength="300" value={description} placeholder="Enter campaign description..." onChange={(e) => setDescription(e.target.value)} required/>
         </div>
 
         <div className="formFieldBox">
@@ -255,7 +256,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
             error || 
             (minGoal && goal < formatEther(minGoal)) || 
             (minDuration && calculateDuration(deadline) < minDuration) ||
-            (!isDeployer && userCampaigns >= maxUserCampaigns)
+            (signer && !isDeployer && userCampaigns >= maxUserCampaigns)  // considering signer so that if the user is not connected, the button is enabled to get connected. Bcoz if no signer userCampaigns = maxUserCampaigns = 0 and that will disable the btn.
             }
         >
           {loadingNewCampaign ? ipfsUrl ? "Creating campaign..." : "Uploading to IPFS..." : "Create Campaign"}

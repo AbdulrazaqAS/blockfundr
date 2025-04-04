@@ -41,7 +41,8 @@
     "duration": 75,
     "description": "Affordable, custom 3D-printed prosthetics for people in need.",
     "long_description": "Millions of people worldwide lack access to affordable prosthetic limbs. We use 3D printing technology to produce high-quality, low-cost prosthetics that restore mobility and independence.",
-    "location": "Nairobi, Kenya"
+    "location": "Nairobi, Kenya",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmawStYYfSHkmAQFjydaW5RJRE82aJAtrNvj2fNj4pHASR"
   },
   {
     "title": "Blockchain-Based Land Ownership Registry",
@@ -49,7 +50,8 @@
     "duration": 50,
     "description": "A secure blockchain platform for verifying land ownership.",
     "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
-    "location": "Lagos, Nigeria"
+    "location": "Lagos, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZ5qAEiPdq5wfR1KuTs7wud5pV5xfYjCkKC6oasGh1gsQ"
   },
   {
     "title": "Reforestation Project for Climate Action",
@@ -57,15 +59,17 @@
     "duration": 85,
     "description": "Planting trees to combat deforestation and climate change.",
     "long_description": "Deforestation is a major contributor to climate change. This campaign supports large-scale tree-planting efforts in deforested regions to restore ecosystems and promote sustainability.",
-    "location": "Niamey, Niger"
+    "location": "Niamey, Niger",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmW4FcpUeq7HYWW8Wi4WiskSMZAMjtrcrh84sutM9uoqkU"
   },
   {
     "title": "Community-Driven Food Bank Initiative",
-    "goal": 2.5,
+    "goal": 7.75,
     "duration": 40,
     "description": "Providing food aid to families facing hunger and poverty.",
     "long_description": "Food insecurity affects millions. Our community-led food bank initiative collects and distributes food to those in need, ensuring that no family goes hungry.",
-    "location": "Kano, Nigeria"
+    "location": "Kano, Nigeria",
+    "ifpsUrl": "https://gateway.pinata.cloud/ipfs/QmYNdUfXYaJdGQzbWuDEWC8jC4fcS9jvz8ReDMmUMBrZWp"
   },
   {
     "title": "Space-Themed STEM Learning Kits for Schools",

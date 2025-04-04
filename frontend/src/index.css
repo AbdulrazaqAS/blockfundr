@@ -135,6 +135,12 @@ button:disabled {
   -webkit-box-orient: vertical; /* Required for line-clamp */
 }
 
+.card-closed-text {
+  color: red;
+  font-size: large;
+  padding: auto 0px;
+}
+
 .divider-line {
   width: 3px;
   background-color: rgb(62, 33, 79);

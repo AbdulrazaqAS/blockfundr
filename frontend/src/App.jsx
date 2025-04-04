@@ -92,7 +92,6 @@ function App() {
             if (val !== '0x'){
               const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
               setCrowdfundContract(crowdfundContract);
-              console.log("Contract Code:", val.slice(0, 10) + "..." + val.slice(-10));
             } else {
               throw new Error(`No contract deployed at ${contractAddress.Crowdfund}`);
             }
@@ -106,9 +105,9 @@ function App() {
                 if (val !== '0x'){
                   const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
                   // crowdfundContract.on("CampaignCreated", createCard);
-                  crowdfundContract.on("CampaignCreated", async () => {
-                    await createCard(crowdfundContract); // Pass the contract directly
-                  });
+                  // crowdfundContract.on("CampaignCreated", async () => {
+                  //   await createCard(crowdfundContract); // Pass the contract directly
+                  // });
                   setCrowdfundContract(crowdfundContract);
                   setInitError(null);
                   clearInterval(reload);
@@ -141,12 +140,6 @@ function App() {
 
     async function loadCampaigns(){
       try {
-        // let totalCampaigns = await crowdfundContract.campaignCount();
-        // let totalClosedCampaigns = await crowdfundContract.closedCampaigns();
-  
-        // totalCampaigns = totalCampaigns - totalClosedCampaigns;
-        // totalCampaigns = totalCampaigns.toString();
-        // totalClosedCampaigns = totalClosedCampaigns.toString();
         const { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
         setTotalCampaigns(totalActiveCampaigns);
         setTotalClosedCampaigns(totalClosedCampaigns);
@@ -205,8 +198,8 @@ function App() {
         }
         setCampaigns((prev) => {
           const updatedCampaigns = [...prev];
-          const updatedCampaign = {...updatedCampaigns[campaignId], ...fundedCampaignObj};
-          updatedCampaigns[campaignId] = updatedCampaign;
+          const campaignIndex = updatedCampaigns.findIndex((campaign) => campaign.id === campaignId);
+          updatedCampaigns[campaignIndex] = fundedCampaignObj;
           return updatedCampaigns;
         });
       });
@@ -236,6 +229,7 @@ function App() {
         setCampaigns((prev) => {
           return prev.filter((el) => el.id !== campaignId);
         })
+        setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
       });
     }
 

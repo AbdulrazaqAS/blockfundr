@@ -29,7 +29,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
-  const [isClosed, setIsClosed] = useState(false);
 
   const {
     id,
@@ -37,6 +36,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     goal,
     deadline,
     fundsRaised,
+    isClosed,
     totalContributors,
     metadata,
   } = campaign;
@@ -97,14 +97,15 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     try {
       setIsWithdrawing(true);
       console.log("Id", id);
-      const campaign = await crowdfundContract.campaigns(0);
-      console.log("Withdraw campaign ID Details:", campaign);
-      const tx = await crowdfundContract.connect(newSigner).withdrawFunds(Number(id));
+      const tx = await crowdfundContract.connect(newSigner).withdrawFunds(id);
       await tx.wait();
       console.log("Withdraw successful:", tx);
     } catch (error) {
       console.error("Error withdrawing funds:", error);
-      setError(error);
+      if (error.code === "ACTION_REJECTED")
+        setError(new Error("User rejected request."));
+      else
+        setError(error);
     } finally {
       setIsWithdrawing(false);
     }
@@ -134,7 +135,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   async function getWithdrawableAmount(){
     try {
       const withdrawableAmount = await crowdfundContract.calculateWithdrawAmount(id);
-      console.log("Withdrawable amount:", withdrawableAmount.toString());
       setWithdrawable(ethers.formatEther(withdrawableAmount));
     } catch (error){
       console.error("Error fetching withdrawable amount:", error);
@@ -167,21 +167,20 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       setIsOwner(signer.address === campaign.creator);
     else setIsOwner(false);
 
-    // crowdfundContract.isClosed(id).then((closed) => {
-    //   setIsClosed(closed);
-    // }).catch((error) => {
-    //   console.error("Error fetching whether campaign is closed:", error);
-    //   setIsClosed(false);
-    // });
-
     setTimeRemainingStr(getTimeRemainingStr(deadline));
-    const updateTimeInterval = setInterval(()=>{
+
+    let updateTimeInterval;
+    if (!isClosed){
+      updateTimeInterval = setInterval(()=>{
       setTimeRemainingStr(getTimeRemainingStr(deadline));
-    }, 1000);
+      }, 1000);
+    }
 
     setError(null);
 
-    return () => clearInterval(updateTimeInterval);
+    return () => {
+      if (!isClosed) clearInterval(updateTimeInterval);
+    }
   }, [campaign]);
 
   useEffect(() => {
@@ -204,7 +203,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
           {isOwner && <p><strong>Withdrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
           {/* TODO: Show campaign duration */}
-          <p><strong>Time Remaining:</strong> {timeRemainingStr}</p>
+          {isClosed ? (<p><strong>Duration:</strong> 0 days 0 hrs 0 mins 0 secs</p>) :
+            (<p><strong>Time Remaining:</strong> {timeRemainingStr}</p>)
+          }
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
         </div>
         <div className="campaignInfoCard-topright">
