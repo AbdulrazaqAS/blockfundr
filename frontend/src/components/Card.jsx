@@ -33,7 +33,7 @@ function getPercentage(part, total) {
 }
 
 
-function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo, scrollToCampaignInfo}){
+function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
     const defaultTitle = "Error loading description. Try refreshing.";
@@ -52,12 +52,11 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
     }
 
     function handleClick() {
-        setShowCampaignInfo({id, metadata});
+        setShowCampaignInfo({id, metadata, isClosed});
         scrollToCampaignInfo();
     }
 
     useEffect(() => {
-        console.log("MetaData", metadataUrl.length);
         loadMetadata(metadataUrl).then((val) => {
             setMetadata(val);
         });
@@ -76,6 +75,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
                 </ul>
                 <progress value={fundsRaised.toString()} max={goal.toString()} />
                 <p>{getPercentage(fundsRaised.toString(), goal.toString())}% financed</p>
+                {isClosed && <p className="red-p">Closed</p>}
             </div>
         </div>
 	)

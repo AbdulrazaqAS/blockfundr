@@ -70,9 +70,10 @@ async function main() {
 	duration = parseInt(campaingsJson[3].duration) * 24 * 60 * 60
 
   const campaign3 = await createCampaign(signer1, metadataUrl, goal, duration);
-  await fundCampaign(signer1, campaign2, "0.11");
-  await fundCampaign(signer2, campaign2, "0.75");
-  await fundCampaign(signer2, campaign2, "1.05");
+  await fundCampaign(signer1, campaign3, "0.11");
+  await fundCampaign(signer2, campaign3, "0.75");
+  await fundCampaign(signer2, campaign3, "1.05");
+  
   // Save the contract's artifacts and address in the frontend directory
   saveFrontendFiles(crowdfund, contractName, contractAddress);
 }

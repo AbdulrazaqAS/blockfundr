@@ -20,8 +20,10 @@ function App() {
   const [crowdfundContract, setCrowdfundContract] = useState(null);
   const [address, setAddress] = useState("");
   const [signer, setSigner] = useState(null);
-  const [totalCampaigns, setTotalCampaigns] = useState(0);
+  const [totalActiveCampaigns, setTotalCampaigns] = useState(0);
+  const [totalClosedCampaigns, setTotalClosedCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
+  const [closedCampaigns, setClosedCampaigns] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
   const [showCampaignInfo, setShowCampaignInfo] = useState(null);
@@ -53,6 +55,7 @@ function App() {
       deadline: campaign[4],
       fundsRaised: campaign[5],
       totalContributors: campaign[6],
+      isClosed: campaign[7],
     }
 
     // Maybe in hardhat localhost, since blocks are not getting created until when a tx
@@ -124,14 +127,34 @@ function App() {
   }, [])
 
   useEffect(() => {
+    async function getCampaignsCount(){
+      let totalCampaigns = await crowdfundContract.campaignCount();
+      let totalClosedCampaigns = await crowdfundContract.closedCampaigns();
+      let totalActiveCampaigns = totalCampaigns - totalClosedCampaigns;
+
+      totalCampaigns = totalCampaigns.toString();
+      totalActiveCampaigns = totalActiveCampaigns.toString();
+      totalClosedCampaigns = totalClosedCampaigns.toString();
+
+      return { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns };
+    }
+
     async function loadCampaigns(){
       try {
-        let totalCampaigns = await crowdfundContract.campaignCount();
-        totalCampaigns = totalCampaigns.toString();
-        setTotalCampaigns(totalCampaigns);
+        // let totalCampaigns = await crowdfundContract.campaignCount();
+        // let totalClosedCampaigns = await crowdfundContract.closedCampaigns();
+  
+        // totalCampaigns = totalCampaigns - totalClosedCampaigns;
+        // totalCampaigns = totalCampaigns.toString();
+        // totalClosedCampaigns = totalClosedCampaigns.toString();
+        const { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
+        setTotalCampaigns(totalActiveCampaigns);
+        setTotalClosedCampaigns(totalClosedCampaigns);
 
         // TODO: use Promise.all here to load faster
         const loadedCampaigns = [];
+        const closedLoadedCampaigns = [];
+
         for (let i=0;i<totalCampaigns;i++){
           const campaign = await crowdfundContract.campaigns(i);
 
@@ -143,11 +166,16 @@ function App() {
             deadline: campaign[4],
             fundsRaised: campaign[5],
             totalContributors: campaign[6],
+            isClosed: campaign[7],
           }
 
-          loadedCampaigns.push(campaignObj);
+          if (campaignObj.isClosed) closedLoadedCampaigns.push(campaignObj);
+          else loadedCampaigns.push(campaignObj);
         }
+        console.log("Loaded campaigns:", loadedCampaigns);
+        console.log("Loaded closed campaigns:", closedLoadedCampaigns);
         setCampaigns(loadedCampaigns);
+        setClosedCampaigns(closedLoadedCampaigns);
       } catch (error) {
         console.error("Error loading campaigns from contract:", error);
         setInitError(error);
@@ -173,23 +201,50 @@ function App() {
           deadline: fundedCampaign[4],
           fundsRaised: fundedCampaign[5],
           totalContributors: fundedCampaign[6],
+          isClosed: fundedCampaign[7],
         }
         setCampaigns((prev) => {
           const updatedCampaigns = [...prev];
-          console.log("Prev campaign:", updatedCampaigns[campaignId]);
           const updatedCampaign = {...updatedCampaigns[campaignId], ...fundedCampaignObj};
-          console.log("Updated campaign:", updatedCampaign);
           updatedCampaigns[campaignId] = updatedCampaign;
           return updatedCampaigns;
         });
+      });
+
+      crowdfundContract.on("Withdrawn", async (campaignId, creator, amount) => {
+        console.log("Withdrawn event: Campaign ID:", campaignId, " By:", creator, " Amount:", amount);
+        const withdrawnCampaign = await crowdfundContract.campaigns(campaignId);
+        const withdrawnCampaignObj = {
+          id: withdrawnCampaign[0],
+          creator: withdrawnCampaign[1],
+          metadataUrl: withdrawnCampaign[2],
+          goal: withdrawnCampaign[3],
+          deadline: withdrawnCampaign[4],
+          fundsRaised: withdrawnCampaign[5],
+          totalContributors: withdrawnCampaign[6],
+          isClosed: withdrawnCampaign[7],
+        }
+
+        const { totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
+        setTotalCampaigns(totalActiveCampaigns);
+        setTotalClosedCampaigns(totalClosedCampaigns);
+
+        setClosedCampaigns((prev) => {
+          return [...prev, withdrawnCampaignObj];
+        });
+        
+        setCampaigns((prev) => {
+          return prev.filter((el) => el.id !== campaignId);
+        })
       });
     }
 
     return () => {
       if (crowdfundContract) {
         try {
-          crowdfundContract.off("CampaignCreated", createCard);
+          crowdfundContract.off("CampaignCreated");
           crowdfundContract.off("Funded");
+          crowdfundContract.off("Withdrawn");
         } catch (error) {
           console.error("Error removing event listener", error);
         }
@@ -284,7 +339,10 @@ function App() {
       {
         showCampaignInfo && (
           <CampaignInfoCard
-            campaign={{...showCampaignInfo, ...campaigns[showCampaignInfo.id]}}
+            campaign= {showCampaignInfo.isClosed ? 
+              {metadata: showCampaignInfo.metadata, ...closedCampaigns[closedCampaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]} :
+              {metadata: showCampaignInfo.metadata, ...campaigns[campaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]}
+            }
             crowdfundContract={crowdfundContract}
             signer={signer}
             setSigner={setSigner}
@@ -292,22 +350,44 @@ function App() {
           />
         )
       }
-      <h2 className="active-campaigns-h2">Active Campaigns ({totalCampaigns})</h2>
-      <ul className="active-campaigns-container">
-        {campaigns.map((campaign) => (
-          <li key={campaign.id}>
-            <Card
-              id={campaign.id}
-              creator={campaign.creator}
-              metadataUrl={campaign.metadataUrl}
-              goal={campaign.goal} deadline={campaign.deadline}
-              fundsRaised={campaign.fundsRaised}
-              setShowCampaignInfo={setShowCampaignInfo}
-              scrollToCampaignInfo={scrollToCampaignInfo}
-            />
-          </li>
-        ))}
-      </ul>
+      <section>
+        <h2 className="active-campaigns-h2">Active Campaigns ({totalActiveCampaigns})</h2>
+        <ul className="active-campaigns-container">
+          {campaigns.map((campaign) => (
+            <li key={campaign.id}>
+              <Card
+                id={campaign.id}
+                creator={campaign.creator}
+                metadataUrl={campaign.metadataUrl}
+                goal={campaign.goal} deadline={campaign.deadline}
+                fundsRaised={campaign.fundsRaised}
+                isClosed={campaign.isClosed}
+                setShowCampaignInfo={setShowCampaignInfo}
+                scrollToCampaignInfo={scrollToCampaignInfo}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section>
+        <h2 className="active-campaigns-h2">Closed Campaigns ({totalClosedCampaigns})</h2>
+        <ul className="active-campaigns-container">
+          {closedCampaigns.map((campaign) => (
+            <li key={campaign.id}>
+              <Card
+                id={campaign.id}
+                creator={campaign.creator}
+                metadataUrl={campaign.metadataUrl}
+                goal={campaign.goal} deadline={campaign.deadline}
+                fundsRaised={campaign.fundsRaised}
+                isClosed={campaign.isClosed}
+                setShowCampaignInfo={setShowCampaignInfo}
+                scrollToCampaignInfo={scrollToCampaignInfo}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }
