@@ -85,20 +85,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   }
 
   async function withdraw() {
-    // Is connecting from here needed? Since withdraw btn won't be shown unless isOwner is true
-    // let newSigner = signer;
-    // if (!newSigner) {
-    //   try {
-    //     newSigner = await provider.getSigner(0);
-    //     console.log("Connected Signer:", newSigner);
-    //     setSigner(newSigner);
-    //   } catch (error) {
-    //     console.error("Error connecting signer:", error);
-    //     setSigner(null);
-    //     return;
-    //   }
-    // }
-
     try {
       setIsWithdrawing(true);
       console.log("Id", id);
@@ -275,7 +261,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
               {isWithdrawing ? "Withdrawing..." : isClosed ? "Closed" : "Withdraw"}
             </button>
           )}
-          {/* TODO: Deployer can stop it */}
           {(isOwner || isDeployer) && !isClosed && (
             <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={stopCampaign}>
               {isStopping ? "Stopping..." : "Stop"}

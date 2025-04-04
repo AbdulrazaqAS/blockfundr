@@ -46,7 +46,7 @@
   },
   {
     "title": "Blockchain-Based Land Ownership Registry",
-    "goal": 2,
+    "goal": 2.55,
     "duration": 50,
     "description": "A secure blockchain platform for verifying land ownership.",
     "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
@@ -69,7 +69,7 @@
     "description": "Providing food aid to families facing hunger and poverty.",
     "long_description": "Food insecurity affects millions. Our community-led food bank initiative collects and distributes food to those in need, ensuring that no family goes hungry.",
     "location": "Kano, Nigeria",
-    "ifpsUrl": "https://gateway.pinata.cloud/ipfs/QmYNdUfXYaJdGQzbWuDEWC8jC4fcS9jvz8ReDMmUMBrZWp"
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmYNdUfXYaJdGQzbWuDEWC8jC4fcS9jvz8ReDMmUMBrZWp"
   },
   {
     "title": "Space-Themed STEM Learning Kits for Schools",
@@ -77,7 +77,8 @@
     "duration": 70,
     "description": "Inspiring kids to learn science through space exploration kits.",
     "long_description": "We develop fun, interactive STEM learning kits designed to teach children about space, physics, and engineering, making science education more engaging and accessible.",
-    "location": "Johannesburg, South Africa"
+    "location": "Johannesburg, South Africa",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/Qmetrmvr6acMDPUAdpkC6uB8orqmv9YmDjUG7oCJXwju7t"
   },
   {
     "title": "Mobile Health Clinics for Remote Villages",
@@ -85,7 +86,7 @@
     "duration": 100,
     "description": "Bringing essential medical services to underserved communities.",
     "long_description": "Many remote areas lack access to basic healthcare. Our mobile health clinics travel to these regions, providing free medical checkups, vaccinations, and essential medicines.",
-    "location": "Yobe, Nigeria"
+    "location": "Yobe, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmVdtKAi1syQPq7Jti6CpQo5KZSQNMfZHq7ETunANdD8Tf"
   }
 ]
-  
