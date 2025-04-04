@@ -31,6 +31,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
+  const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
 
   const {
     id,
@@ -223,9 +224,21 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   }, [campaign]);
 
   useEffect(() => {
-    if (signer)
-      setIsOwner(signer.address === campaign.creator);
-    else setIsOwner(false);
+    if (!signer) {
+      setIsOwner(false);
+      setIsDeployer(false);
+      return;
+    }
+
+    setIsOwner(signer.address === campaign.creator);
+
+    crowdfundContract.owner().then((deployerAddress) => {
+      setIsDeployer(signer.address === deployerAddress);
+    }).catch((error)=> {
+      console.error("Error fetching deployer address:", error);
+      setIsDeployer(false);
+    });
+
   }, [signer]);
 
   return (
@@ -263,7 +276,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
             </button>
           )}
           {/* TODO: Deployer can stop it */}
-          {isOwner && !isClosed && (
+          {(isOwner || isDeployer) && !isClosed && (
             <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={stopCampaign}>
               {isStopping ? "Stopping..." : "Stop"}
             </button>

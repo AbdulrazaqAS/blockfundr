@@ -111,7 +111,7 @@ contract Crowdfund {
         // Penlaty for closing an ongoing campaign. To avoid malicious acts.
         uint256 creatorContribution = getContribution(_campaignId, campaign.creator);
         if (creatorContribution > 0) {
-            contractBalance += creatorContribution;
+            contractBalance += creatorContribution;  // Should this reduce the amount raised just like refunding?
             // No need to change the contributed amount to 0 since creators can't take refund
         }
 
