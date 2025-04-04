@@ -24,6 +24,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
+  const [isRefunding, setIsRefunding] = useState(false);
   const [fundsHistory, setFundsHistory] = useState([]);
   const [isOwner, setIsOwner] = useState(signer && signer.address === campaign.creator);
   const [error, setError] = useState(null);
@@ -37,6 +39,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     deadline,
     fundsRaised,
     isClosed,
+    isStopped,
     totalContributors,
     metadata,
   } = campaign;
@@ -46,7 +49,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     image="blockfundr_profile.png",
     title="Error loading title",
     location="Error loading location",
-  } = metadata || {};
+  } = metadata || {}; // Default values in case metadata is null
 
   async function sendFunds(amount){
     let newSigner = signer;
@@ -81,23 +84,25 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   }
 
   async function withdraw() {
-    let newSigner = signer;
-    if (!newSigner) {
-      try {
-        newSigner = await provider.getSigner(0);
-        console.log("Connected Signer:", newSigner);
-        setSigner(newSigner);
-      } catch (error) {
-        console.error("Error connecting signer:", error);
-        setSigner(null);
-        return;
-      }
-    }
+    // Is connecting from here needed? Since withdraw btn won't be shown unless isOwner is true
+    // let newSigner = signer;
+    // if (!newSigner) {
+    //   try {
+    //     newSigner = await provider.getSigner(0);
+    //     console.log("Connected Signer:", newSigner);
+    //     setSigner(newSigner);
+    //   } catch (error) {
+    //     console.error("Error connecting signer:", error);
+    //     setSigner(null);
+    //     return;
+    //   }
+    // }
 
     try {
       setIsWithdrawing(true);
       console.log("Id", id);
-      const tx = await crowdfundContract.connect(newSigner).withdrawFunds(id);
+      const tx = await crowdfundContract.connect(signer).withdrawFunds(id);
+      // const tx = await crowdfundContract.connect(newSigner).withdrawFunds(id);
       await tx.wait();
       console.log("Withdraw successful:", tx);
     } catch (error) {
@@ -108,6 +113,41 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         setError(error);
     } finally {
       setIsWithdrawing(false);
+    }
+  }
+
+  async function stopCampaign() {
+    try {
+      setIsStopping(true);
+      const tx = await crowdfundContract.connect(signer).stop(id);
+      await tx.wait();
+      console.log("Campaign stopped successfully:", tx);
+    } catch (error) {
+      console.error("Error stopping campaign:", error);
+      if (error.code === "ACTION_REJECTED")
+        setError(new Error("User rejected request."));
+      else
+        setError(error);
+    } finally {
+      setIsStopping(false);
+    }
+  }
+
+  // TODO: return if account has not made any contributions
+  async function requestRefund() {
+    try {
+      setIsRefunding(true);
+      const tx = await crowdfundContract.connect(signer).takeRefund(id);
+      await tx.wait();
+      console.log("Refund requested successfully:", tx);
+    } catch (error) {
+      console.error("Error requesting refund:", error);
+      if (error.code === "ACTION_REJECTED")
+        setError(new Error("User rejected request."));
+      else
+        setError(error);
+    } finally {
+      setIsRefunding(false);
     }
   }
 
@@ -155,7 +195,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       try {
         const fundedEvents = await getFundedEvents(id);
         setFundsHistory(fundedEvents);
-        console.log("Funding history:", fundedEvents);
       } catch (error) {
         console.error("Error fetching funding history:", error);
       }
@@ -213,22 +252,34 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         </div>
       </div>
       <div className="campaignInfoCard-middle">
-        <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
+        {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
         <div className="camapignInfo-buttons" style={{display: "inline"}}>
-          <button disabled={isSending || fundAmount <= 0 || isClosed} onClick={() => sendFunds(fundAmount)}>
-            {isSending ? "Sending..." : isClosed ? "Closed" : "Send Funds"}
+          <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping} onClick={() => sendFunds(fundAmount)}>
+            {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Stopped" : "Send Funds"}  {/* Priority left to right */}
           </button>
-          {isOwner && (
-            <button disabled={isSending || isClosed || isWithdrawing} onClick={withdraw}>
+          {isOwner && !isClosed && (
+            <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={withdraw}>
               {isWithdrawing ? "Withdrawing..." : isClosed ? "Closed" : "Withdraw"}
             </button>
           )}
+          {/* TODO: Deployer can stop it */}
+          {isOwner && !isClosed && (
+            <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={stopCampaign}>
+              {isStopping ? "Stopping..." : "Stop"}
+            </button>
+          )}
+          {isStopped && signer && !isOwner && (  // onwer can't take refund. Account must be connected to take refund
+            <button disabled={isRefunding} onClick={requestRefund}>
+              {isRefunding ? "Sending..." : "Request refund"} {/* TODO: show refund amount */}
+            </button>
+          )}
         </div>
-        {(isSending || isWithdrawing) && <p className="red-p">Please don't close this card</p>}
+        {(isSending || isWithdrawing || isStopping || isRefunding) && <p className="red-p">Please don't close this card</p>}
       </div>
       <br />
       <hr />
       
+      {/* Show withdraw, refund, and stop txs */}
       <h2>Funding History</h2>
       <table className="funding-table">
         <thead>

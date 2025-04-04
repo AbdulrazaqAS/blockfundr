@@ -56,6 +56,7 @@ function App() {
       fundsRaised: campaign[5],
       totalContributors: campaign[6],
       isClosed: campaign[7],
+      isStopped: false,  // new campaigns are not stopped
     }
 
     // Maybe in hardhat localhost, since blocks are not getting created until when a tx
@@ -104,10 +105,6 @@ function App() {
               code.then((val) => {
                 if (val !== '0x'){
                   const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
-                  // crowdfundContract.on("CampaignCreated", createCard);
-                  // crowdfundContract.on("CampaignCreated", async () => {
-                  //   await createCard(crowdfundContract); // Pass the contract directly
-                  // });
                   setCrowdfundContract(crowdfundContract);
                   setInitError(null);
                   clearInterval(reload);
@@ -162,11 +159,13 @@ function App() {
             isClosed: campaign[7],
           }
 
+          const isStopped = await crowdfundContract.isStopped(campaignObj.id);
+          campaignObj.isStopped = isStopped;
+
           if (campaignObj.isClosed) closedLoadedCampaigns.push(campaignObj);
           else loadedCampaigns.push(campaignObj);
         }
-        console.log("Loaded campaigns:", loadedCampaigns);
-        console.log("Loaded closed campaigns:", closedLoadedCampaigns);
+        
         setCampaigns(loadedCampaigns);
         setClosedCampaigns(closedLoadedCampaigns);
       } catch (error) {
@@ -184,7 +183,7 @@ function App() {
       });
 
       crowdfundContract.on("Funded", async (campaignId, backer, amount) => {
-        console.log("Funded event:", campaignId, backer, amount);
+        console.log("Funded event:", {campaignId, backer, amount});
         const fundedCampaign = await crowdfundContract.campaigns(campaignId);
         const fundedCampaignObj = {
           id: fundedCampaign[0],
@@ -195,17 +194,19 @@ function App() {
           fundsRaised: fundedCampaign[5],
           totalContributors: fundedCampaign[6],
           isClosed: fundedCampaign[7],
+          isStopped: false,  // fundable campaigns are not stopped
         }
+
         setCampaigns((prev) => {
           const updatedCampaigns = [...prev];
           const campaignIndex = updatedCampaigns.findIndex((campaign) => campaign.id === campaignId);
           updatedCampaigns[campaignIndex] = fundedCampaignObj;
           return updatedCampaigns;
         });
-      });
+      });      
 
       crowdfundContract.on("Withdrawn", async (campaignId, creator, amount) => {
-        console.log("Withdrawn event: Campaign ID:", campaignId, " By:", creator, " Amount:", amount);
+        console.log("Withdrawn event:", {campaignId, creator, amount});
         const withdrawnCampaign = await crowdfundContract.campaigns(campaignId);
         const withdrawnCampaignObj = {
           id: withdrawnCampaign[0],
@@ -216,6 +217,7 @@ function App() {
           fundsRaised: withdrawnCampaign[5],
           totalContributors: withdrawnCampaign[6],
           isClosed: withdrawnCampaign[7],
+          isStopped: false,
         }
 
         const { totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
@@ -231,6 +233,61 @@ function App() {
         })
         setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
       });
+
+      crowdfundContract.on("Stopped", async (campaignId, byCreator) => {  // if not byCreator then it is byAdmin(deployer)
+        console.log("Stopped event:", {campaignId, byCreator});
+        const stoppedCampaign = await crowdfundContract.campaigns(campaignId);
+        const stoppedCampaignObj = {
+          id: stoppedCampaign[0],
+          creator: stoppedCampaign[1],
+          metadataUrl: stoppedCampaign[2],
+          goal: stoppedCampaign[3],
+          deadline: stoppedCampaign[4],
+          fundsRaised: stoppedCampaign[5],
+          totalContributors: stoppedCampaign[6],
+          isClosed: stoppedCampaign[7],
+          isStopped: true,
+        }
+
+        // const isStopped = await crowdfundContract.isStopped(withdrawnCampaignObj.id);
+        // withdrawnCampaignObj.isStopped = isStopped;
+
+        const { totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
+        setTotalCampaigns(totalActiveCampaigns);
+        setTotalClosedCampaigns(totalClosedCampaigns);
+
+        setClosedCampaigns((prev) => {
+          return [...prev, stoppedCampaignObj];
+        });
+        
+        setCampaigns((prev) => {
+          return prev.filter((el) => el.id !== campaignId);
+        })
+        setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
+      });
+
+      crowdfundContract.on("Refunded", async (campaignId, backer, amount) => {
+        console.log("Refunded event:", {campaignId, backer, amount});
+        const refundingCampaign = await crowdfundContract.campaigns(campaignId);
+        const refundingCampaignObj = {
+          id: refundingCampaign[0],
+          creator: refundingCampaign[1],
+          metadataUrl: refundingCampaign[2],
+          goal: refundingCampaign[3],
+          deadline: refundingCampaign[4],
+          fundsRaised: refundingCampaign[5],
+          totalContributors: refundingCampaign[6],
+          isClosed: refundingCampaign[7],
+          isStopped: true,  // refundable campaigns are stopped
+        }
+
+        setClosedCampaigns((prev) => {
+          const updatedCampaigns = [...prev];
+          const campaignIndex = updatedCampaigns.findIndex((campaign) => campaign.id === campaignId);
+          updatedCampaigns[campaignIndex] = refundingCampaignObj;
+          return updatedCampaigns;
+        });
+      });
     }
 
     return () => {
@@ -239,6 +296,8 @@ function App() {
           crowdfundContract.off("CampaignCreated");
           crowdfundContract.off("Funded");
           crowdfundContract.off("Withdrawn");
+          crowdfundContract.off("Stopped");
+          crowdfundContract.off("Refunded");
         } catch (error) {
           console.error("Error removing event listener", error);
         }
@@ -356,6 +415,7 @@ function App() {
                 goal={campaign.goal} deadline={campaign.deadline}
                 fundsRaised={campaign.fundsRaised}
                 isClosed={campaign.isClosed}
+                isStopped={campaign.isStopped}
                 setShowCampaignInfo={setShowCampaignInfo}
                 scrollToCampaignInfo={scrollToCampaignInfo}
               />
@@ -375,6 +435,7 @@ function App() {
                 goal={campaign.goal} deadline={campaign.deadline}
                 fundsRaised={campaign.fundsRaised}
                 isClosed={campaign.isClosed}
+                isStopped={campaign.isStopped}
                 setShowCampaignInfo={setShowCampaignInfo}
                 scrollToCampaignInfo={scrollToCampaignInfo}
               />

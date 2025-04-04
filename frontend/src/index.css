@@ -141,6 +141,12 @@ button:disabled {
   padding: auto 0px;
 }
 
+.card-refund-text {
+  color: green;
+  font-size: large;
+  padding: auto 0px;
+}
+
 .divider-line {
   width: 3px;
   background-color: rgb(62, 33, 79);

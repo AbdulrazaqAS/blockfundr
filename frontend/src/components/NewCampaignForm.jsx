@@ -165,7 +165,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     setIpfsUrl("");  // Clear previous IPFS URL
     setError(null);  // Clear previous error
 
-    // TODO: Add a place to put ipfs link then hide image and description fields
     const ipfsLink = await uploadToIPFS();
     if (!ipfsLink){
       setLoadingNewCampaign(false);

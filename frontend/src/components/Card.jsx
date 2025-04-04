@@ -33,7 +33,7 @@ function getPercentage(part, total) {
 }
 
 
-function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, setShowCampaignInfo, scrollToCampaignInfo}){
+function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, isStopped, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
     const defaultTitle = "Error loading description. Try refreshing.";
@@ -73,7 +73,9 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, 
                     <li className="divider-line"></li>
                     {!isClosed ?
                         (<li><strong>{timeRemainingStr[1]} {timeRemainingStr[0]}</strong><br />remaining</li>) :
-                        (<h1 className="card-closed-text">Closed</h1>)
+                        isStopped ?
+                            (<h1 className="card-refund-text">Refundable</h1>) :
+                            (<h1 className="card-closed-text">Closed</h1>)
                     }
                 </ul>
                 <progress value={fundsRaised.toString()} max={goal.toString()} />
