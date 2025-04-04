@@ -16,6 +16,7 @@ contract Crowdfund {
 
     address public owner;
     uint256 public campaignCount;
+    uint256 public closedCampaigns;
     uint256 public contractBalance;
     mapping(uint256 => Campaign) public campaigns;
     mapping(address => uint256) public usersCampaigns;
@@ -81,7 +82,7 @@ contract Crowdfund {
         require(campaign.fundsRaised >= campaign.goal || block.timestamp > campaign.deadline, 
             "Wait for campaign to expire or reach funding goal");
         // TODO: Admins can withdraw campaign funds after long time of creator inactivity
-        
+
         uint256 amount = (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
         uint256 contractAmount = campaign.fundsRaised - amount;
 
@@ -89,6 +90,7 @@ contract Crowdfund {
         contractBalance += contractAmount;  // Withdrawable/transferable by contract
         campaign.isClosed = true;
         usersCampaigns[msg.sender]--;  // TODO: Avoid setting it to zero to reduce gas
+        closedCampaigns++;
         emit Withdrawn(_campaignId, msg.sender, amount);
     }
 
@@ -102,6 +104,7 @@ contract Crowdfund {
         stoppedCampaigns[_campaignId] = true;
         campaign.isClosed = true;
         usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--
+        closedCampaigns++;
 
         // Penlaty for closing an ongoing campaign. To avoid malicious acts.
         uint256 creatorContribution = getContribution(_campaignId, campaign.creator);
@@ -129,15 +132,6 @@ contract Crowdfund {
         emit Refunded(_campaignId, msg.sender, contribution);
     }
 
-    function getContribution(uint256 _campaignId, address _contributor) public view returns (uint256) {
-        return campaigns[_campaignId].contributions[_contributor];
-    }
-
-    function calculateWithdrawAmount(uint256 _campaignId) external view returns (uint256) {
-        Campaign storage campaign = campaigns[_campaignId];
-        return (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
-    }
-
     function withdraw(uint256 _amount) external {
         require(msg.sender == owner, "Only contract owner can withdraw");
         require(_amount <= contractBalance, "No available withdrawable funds");
@@ -155,5 +149,22 @@ contract Crowdfund {
         contractBalance -= _amount;
 
         emit ContractFundsTransferred(_receiver, _amount);
+    }
+
+    function getContribution(uint256 _campaignId, address _contributor) public view returns (uint256) {
+        return campaigns[_campaignId].contributions[_contributor];
+    }
+
+    function calculateWithdrawAmount(uint256 _campaignId) external view returns (uint256) {
+        Campaign storage campaign = campaigns[_campaignId];
+        return (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
+    }
+
+    function isStopped(uint256 _campaignId) external view returns (bool) {
+        return stoppedCampaigns[_campaignId];
+    }
+
+    function isClosed(uint256 _campaignId) external view returns (bool) {
+        return campaigns[_campaignId].isClosed;
     }
 }

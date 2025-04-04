@@ -153,7 +153,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       const metadataUrl = `https://gateway.pinata.cloud/ipfs/${jsonResponse.data.IpfsHash}`;
       setIpfsUrl(metadataUrl);
 
-      alert("File uploaded to IPFS successfully!");
       return metadataUrl;
     } catch (error) {
       setIpfsUrl("");
@@ -197,23 +196,23 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     console.log("New campaign created successfully:", txReceipt);
 
     setLoadingNewCampaign(false);
-    // setImage("");
-    // setTitle("");
-    // setDescription("");
-    // setLocation("");
-    // setGoal(formatEther(minGoal));
+    setImage("");
+    setTitle("");
+    setDescription("");
+    setLocation("");
+    setGoal(formatEther(minGoal));
     
     // bigint => number won't lose precision here. Added one day to account for passed hrs of the current day.
     const minSeconds = (Date.now() / 1000) + Number(minDuration) + (24 * 60 * 60);
     const minDate = new Date(minSeconds * 1000).toISOString().split("T")[0];
-    // setDeadline(minDate);
+    setDeadline(minDate);
   };
 
   return (
     <div id="newCampaignContainer">
       <form onSubmit={handleSubmit}>
         <h2>Create a New Campaign</h2>
-        {signer && !isDeployer && <p className="red-p">You are not the contract deployer. You can create only {maxUserCampaigns} campaigns. You have already created {userCampaigns} campaigns.</p>}
+        {signer && !isDeployer && <p style={{textAlign:"center"}}>Non-contract deployer can only have {maxUserCampaigns} active campaigns. You have {userCampaigns} active campaigns.</p>}
         {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
@@ -246,16 +245,21 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
             <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} required />
             {minDuration && calculateDuration(deadline) < minDuration && <p className="red-p">Minimum duration is {minDuration} seconds</p>}
         </div>
-
-        <button type="submit" disabled={loadingNewCampaign || error || (minGoal && goal < formatEther(minGoal)) || (minDuration && calculateDuration(deadline) < minDuration)}>
-          {loadingNewCampaign ? "Uploading..." : "Create Campaign"}
-        </button>
         {ipfsUrl && (
-          <p>
-            <br />
+          <p style={{marginBottom:"10px"}}>
             IPFS Link: <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">{ipfsUrl}</a>
           </p>
         )}
+        <button type="submit" disabled={
+            loadingNewCampaign || 
+            error || 
+            (minGoal && goal < formatEther(minGoal)) || 
+            (minDuration && calculateDuration(deadline) < minDuration) ||
+            (!isDeployer && userCampaigns >= maxUserCampaigns)
+            }
+        >
+          {loadingNewCampaign ? ipfsUrl ? "Creating campaign..." : "Uploading to IPFS..." : "Create Campaign"}
+        </button>
       </form>
 
     </div>

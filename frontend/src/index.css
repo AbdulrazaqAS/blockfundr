@@ -27,7 +27,12 @@ body {
   height: inherit;
 }
 
-#contract-balance {
+.contract-balances-container {
+  display: flex;
+  gap: 15px;
+}
+
+.contract-balance {
   color: white;
   font-family: Arial, Helvetica, sans-serif;
   font-size: larger;
@@ -159,6 +164,11 @@ progress {
   width: 100%;
 }
 
+#newCampaignContainer{
+  max-width: 1500px;
+  margin: 0px auto;
+}
+
 #newCampaignContainer h2{
   margin: 0px auto 10px;
 }
@@ -197,11 +207,12 @@ progress {
   flex-direction: column;
   border-radius: 10px;
   padding: 10px 15px;
-  margin: 10px 0px;
+  margin: 5px 0px;
 }
 
 .campaignInfoCard {
   width: 80%;
+  max-width: 900px;
   margin: 15px auto 0px;
   padding: 20px;
   border-radius: 10px;

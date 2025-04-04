@@ -36,7 +36,7 @@ function getPercentage(part, total) {
 function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
-    const defaultDescription = "Error loading description. Try refreshing.";
+    const defaultTitle = "Error loading description. Try refreshing.";
     const timeRemainingStr = getTimeRemaining(deadline.toString()); // returns [str, int]
 
     async function loadMetadata(url) {
@@ -67,9 +67,8 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, setShowCam
 		<div className="card" onClick={handleClick}>
             <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             <div id="card-info">
-                <h3>By: {creator.slice(0, 5) + "....." + creator.slice(37)}</h3>
-                <p className="card-description">{metadata ? metadata.description : defaultDescription}</p>
-                {/* TODO: Add location: city, Country. */}
+                <h3>By: {creator.slice(0, 7) + "....." + creator.slice(37)}</h3>
+                <p className="card-description">{metadata ? metadata.title : defaultTitle}</p>
                 <ul>
                     <li><strong>{formatEther(fundsRaised).toString().slice(0, 7)} eth</strong><br />raised</li>
                     <li className="divider-line"></li>

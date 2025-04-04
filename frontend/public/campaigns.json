@@ -5,7 +5,8 @@
     "duration": 30,
     "description": "An AI-based education platform to help children learn interactively.",
     "long_description": "This project focuses on building an AI-powered learning app tailored for children aged 6-12, making education fun and engaging through interactive games, quizzes, and adaptive learning.",
-    "location": "Abuja, Nigeria"
+    "location": "Abuja, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmWQKLNZUaLnnfdVsejKiZDfzz5fNcvXBs9SoPc2i4iRLH"
   },
   {
     "title": "Solar-Powered Water Pumps for Rural Farmers",
@@ -13,7 +14,8 @@
     "duration": 90,
     "description": "Providing clean water access to rural farmers using solar-powered pumps.",
     "long_description": "Many farmers in remote areas struggle with irrigation due to a lack of electricity and water access. This campaign aims to install solar-powered water pumps to improve agricultural productivity and provide clean drinking water to communities.",
-    "location": "Kano, Nigeria"
+    "location": "Kano, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmUvpeZ6dn3ESJ94Dct9bH5tBDjVq5i38f5feV9tQ8oJVw"
   },
   {
     "title": "Affordable Housing for Low-Income Families",
@@ -21,7 +23,8 @@
     "duration": 150,
     "description": "Building affordable homes for families in need.",
     "long_description": "This initiative focuses on constructing low-cost, sustainable housing for low-income families, providing them with safe and secure living conditions.",
-    "location": "Nigeria"
+    "location": "Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmR4bRqkSLT4joHk9qdjxFDPTyFkQBv1V81PbVLCGB4Dys"
   },
   {
     "title": "Eco-Friendly Packaging Startup",
@@ -29,7 +32,8 @@
     "duration": 45,
     "description": "Developing biodegradable packaging to reduce plastic waste.",
     "long_description": "Plastic pollution is a growing environmental crisis. Our startup aims to create sustainable, compostable, and biodegradable packaging solutions for businesses to help reduce waste and protect the planet.",
-    "location": "Abuja, Nigeria"
+    "location": "Abuja, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZxVDpMpRnrs89wCdhXFEN3XFTK1TMiaCqLSAwr1U5euJ"
   },
   {
     "title": "3D-Printed Prosthetics for Amputees",

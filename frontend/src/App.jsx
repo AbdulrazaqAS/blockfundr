@@ -53,7 +53,6 @@ function App() {
       deadline: campaign[4],
       fundsRaised: campaign[5],
       totalContributors: campaign[6],
-      isClosed: campaign[7],
     }
 
     // Maybe in hardhat localhost, since blocks are not getting created until when a tx
@@ -80,7 +79,6 @@ function App() {
 
         const network = provider.getNetwork();
         network.then((val) => {
-          console.log("Network Name", val.name);
           console.log("Network", val)
         });
 
@@ -145,7 +143,6 @@ function App() {
             deadline: campaign[4],
             fundsRaised: campaign[5],
             totalContributors: campaign[6],
-            isClosed: campaign[7],
           }
 
           loadedCampaigns.push(campaignObj);
@@ -176,7 +173,6 @@ function App() {
           deadline: fundedCampaign[4],
           fundsRaised: fundedCampaign[5],
           totalContributors: fundedCampaign[6],
-          isClosed: fundedCampaign[7],
         }
         setCampaigns((prev) => {
           const updatedCampaigns = [...prev];
@@ -255,6 +251,7 @@ function App() {
   return (
     <div>
       <NavBar  ref={campaignInfoRef}
+        crowdfundContract={crowdfundContract}
         walletDetected={walletDetected}
         address={address}
         contractAddress={contractAddress.Crowdfund}

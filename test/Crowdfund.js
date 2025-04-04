@@ -318,7 +318,7 @@ describe("Crowdfund", ()=>{
 				const closed = await crowdfund.campaigns(campaignId);
 				const stopped = await crowdfund.stoppedCampaigns(campaignId);
 				assert(stopped, "Campaign not stooped");
-				assert(closed[7], "Campaign not closed"); // isStopped is at index 7
+				assert(closed[7], "Campaign not closed"); // isStopped is at index 7,  use the func isStopped instead
 			});
 
 			it("Should revert if is not admin and not creator", async () => {

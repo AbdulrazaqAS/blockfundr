@@ -29,6 +29,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
+  const [isClosed, setIsClosed] = useState(false);
 
   const {
     id,
@@ -37,10 +38,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     deadline,
     fundsRaised,
     totalContributors,
-    isClosed,
     metadata,
   } = campaign;
- console.log("Campain details:", campaign);
+
   const {
     description="Error loading description",
     image="blockfundr_profile.png",
@@ -167,6 +167,13 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       setIsOwner(signer.address === campaign.creator);
     else setIsOwner(false);
 
+    // crowdfundContract.isClosed(id).then((closed) => {
+    //   setIsClosed(closed);
+    // }).catch((error) => {
+    //   console.error("Error fetching whether campaign is closed:", error);
+    //   setIsClosed(false);
+    // });
+
     setTimeRemainingStr(getTimeRemainingStr(deadline));
     const updateTimeInterval = setInterval(()=>{
       setTimeRemainingStr(getTimeRemainingStr(deadline));
@@ -195,7 +202,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <p><strong>Location:</strong> {location}</p>
           <p><strong>Goal:</strong> {ethers.formatEther(goal)} ETH</p>
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
-          {isClosed && <p><strong>Withdrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
+          {isOwner && <p><strong>Withdrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
           {/* TODO: Show campaign duration */}
           <p><strong>Time Remaining:</strong> {timeRemainingStr}</p>
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
@@ -216,7 +223,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
             </button>
           )}
         </div>
-        {isSending && <p className="red-p">Please don't close this card</p>}
+        {(isSending || isWithdrawing) && <p className="red-p">Please don't close this card</p>}
       </div>
       <br />
       <hr />
