@@ -12,7 +12,7 @@ function ConnectBtn({walletDetected, address, provider, signer, setSigner, setWa
 				throw new Error("Already connected to this account. Use the wallet to disconnect.");
 			}
 			setSigner(newSigner);
-			changeToNetwork(networkId); // Seems not working
+			//changeToNetwork(networkId); // Seems not working
 		} catch (error) {
 			setWalletError(error);
 			if (error.code === 4001) {
