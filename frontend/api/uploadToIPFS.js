@@ -84,8 +84,9 @@ export default async function handler(req, res) {
       console.log("Metadata URL:", metadataUrl);
       return res.status(200).json({ metadataUrl });
     } catch (error) {
+      console.log("Pinata upload error:", error);
       console.error("Pinata upload error:", error);
-      return res.status(500).json({ error: 'Failed to upload to IPFS' });
+      return res.status(500).json({ error: error.message });
     }
   });
 }
