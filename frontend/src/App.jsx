@@ -176,10 +176,10 @@ function App() {
     }
 
     if (crowdfundContract) {
-      console.log("Loading prev campaigns");
       loadCampaigns();
 
       crowdfundContract.on("CampaignCreated", async () => {
+        console.log("Campaign created event");
         await createCard(crowdfundContract); // Will work without await?
       });
 

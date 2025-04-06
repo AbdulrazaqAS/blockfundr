@@ -77,7 +77,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     if (!signer){
       try {
         signer0 = await provider.getSigner(0);
-        console.log("Connected Signer:", signer0);
+        // console.log("Connected Signer:", signer0);
         setSigner(signer0);
       } catch (error) {
         // TODO: Show error message in the form
@@ -88,10 +88,10 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     }
 
     try {
-      const tx = await crowdfundContract.connect(signer0).createCampaign(metadataUrl, goal, duration);
-      await tx.wait();
+      const txResponse = await crowdfundContract.connect(signer0).createCampaign(metadataUrl, goal, duration);
+      const txReceipt = await txResponse.wait();
       //TODO: Display tx link on etherscan
-      return tx;
+      return txReceipt;
     } catch (error) {
       console.error("Error creating new campaign:", error);
       return null;
@@ -136,7 +136,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       // console.log("Response: awaited .json:", result1);
   
       if (response.statusText === "OK" || response.status === 200) {
-        console.log("IPFS URL:", result.metadataUrl);
         setIpfsUrl(result.metadataUrl);
         return result.metadataUrl;
       } else {
@@ -176,17 +175,16 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       alert("Failed to create new campaign. Please try again.");
       return;
     }
+    console.log("New campaign created successfully:", txReceipt);
 
     if (signer){ // signer maybe null if just connected by clicking the create campaign button due async nature of updating state var.
       crowdfundContract.usersCampaigns(signer.address).then((val)=>{
         setUserCampaigns(val);
       }).catch((error)=>{
-        console.error("Error reading user campaigns:", error);
+        console.error("Error reading user campaigns count:", error);
         setError(error);
       });
     }
-
-    console.log("New campaign created successfully:", txReceipt);
 
     setLoadingNewCampaign(false);
     setTitle("");
