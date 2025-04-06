@@ -13,6 +13,7 @@ import NoWalletDetected from './components/NoWalletDetected';
 import ErrorMessage from './components/ErrorMessage.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
+const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
