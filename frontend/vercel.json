@@ -1,10 +1,4 @@
 {
-    "builds": [
-      {
-        "src": "api/uploadToIPFS.js",
-        "use": "@vercel/node"
-      }
-    ],
     "routes": [
       {
         "src": "/api/(.*)",
