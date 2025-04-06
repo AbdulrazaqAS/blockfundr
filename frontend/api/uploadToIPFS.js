@@ -22,8 +22,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error parsing form' });
     }
 
-    console.log("Fields:", fields);
-    console.log("Files:", files);
+    // console.log("Fields:", fields);
+    // console.log("Files:", files);
 
     // Ensure that a file(image) exists
     if (Object.keys(files).length === 0) {
@@ -84,7 +84,6 @@ export default async function handler(req, res) {
       console.log("Metadata URL:", metadataUrl);
       return res.status(200).json({ metadataUrl });
     } catch (error) {
-      console.log("Pinata upload error:", error);
       console.error("Pinata upload error:", error);
       return res.status(500).json({ error: error.message });
     }

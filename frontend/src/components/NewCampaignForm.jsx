@@ -29,9 +29,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [userCampaigns, setUserCampaigns] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
 
-  const pinataApiKey = import.meta.env.VITE_PINATA_API_KEY;
-  const pinataSecret = import.meta.env.VITE_PINATA_API_SECRET;
-
   useEffect(() => {
     try {
       // TODO: show "loading min value" below these fields in the form. Even though they will be loaded fast.
@@ -151,47 +148,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       return null;
     }
   };
-  
-
-  // const uploadToIPFS = async () => {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("image", image);
-  //     formData.append("title", title);
-  //     formData.append("description", description);
-  //     formData.append("location", location);
-  //     formData.append("totalCampaigns", await crowdfundContract.campaignCount());
-      
-  //     // For local dev server
-  //     const response = await axios.post("http://localhost:5000/api/uploadToIPFS", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     // For vercel in production
-  //     // const response = await fetch("/api/uploadToIPFS", {
-  //     //   method: "POST",
-  //     //   body: formData,
-  //     // });
-  //     console.log("Response:", response);
-  //     // const result = await response.json();
-  //     const result = response.data;
-  //     // if (response.ok) {
-  //     if (response.status === 200) {
-  //       setIpfsUrl(result.metadataUrl);
-  //       console.log("IPFS Link:", result.metadataUrl);
-  //       return result.metadataUrl;
-  //     } else {
-  //       throw new Error(result.error || "Unknown error");
-  //     }
-  //   } catch (error) {
-  //     setIpfsUrl("");
-  //     console.error("Error uploading to IPFS:", error);
-  //     alert("Failed to upload to IPFS.");
-  //     return null;
-  //   }
-  // };
   
   // Handle form submission
   const handleSubmit = async (e) => {
