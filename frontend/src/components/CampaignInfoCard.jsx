@@ -46,10 +46,10 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   } = campaign;
 
   const {
-    description="Error loading description",
+    description="Loading description... Please wait.",
     image="blockfundr_profile.png",
-    title="Error loading title",
-    location="Error loading location",
+    title="Loading title...",
+    location="Loading location...",
   } = metadata || {}; // Default values in case metadata is null
 
   async function sendFunds(amount){

@@ -36,7 +36,7 @@ function getPercentage(part, total) {
 function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, isStopped, setShowCampaignInfo, scrollToCampaignInfo}){
     const [metadata, setMetadata] = useState(null);
 
-    const defaultTitle = "Error loading description. Try refreshing.";
+    const defaultTitle = "Loading description... Please wait.";
     const timeRemainingStr = getTimeRemaining(deadline.toString()); // returns [str, int]
 
     async function loadMetadata(url) {

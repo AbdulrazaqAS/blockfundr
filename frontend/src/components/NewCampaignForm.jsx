@@ -103,52 +103,47 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
 
   const uploadToIPFS = async () => {
     try {
-      // Upload Image
       const formData = new FormData();
-      formData.append("file", image);
-
-      const imgResponse = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+      formData.set("image", image);
+      formData.set("title", title);
+      formData.set("description", description);
+      formData.set("location", location);
+      formData.set("totalCampaigns", await crowdfundContract.campaignCount());
+      
+      // Detect local vs production
+      // const isLocalhost = window.location.hostname === "localhost";
+      const isDev = import.meta.env.DEV; // true in dev, false in build
+      
+      const endpoint = isDev
+        ? "http://localhost:5000/api/uploadToIPFS"
+        : "/api/uploadToIPFS";
+      console.log("Endpoint:", endpoint);
+  
+      const response = await axios.post(endpoint, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          pinata_api_key: pinataApiKey,
-          pinata_secret_api_key: pinataSecret,
         },
       });
 
-      const imageUrl = `https://gateway.pinata.cloud/ipfs/${imgResponse.data.IpfsHash}`;
+      console.log("Response:", response);
+      const result = response.data;
 
-      // Upload JSON metadata
-      const metadata = {
-        title,
-        description,
-        location,
-        image: imageUrl,
-      };
-
-      const totalCampaigns = await crowdfundContract.campaignCount();
-      const fileName = `campaign_metadata_${totalCampaigns}`;
-
-      const jsonResponse = await axios.post(
-        "https://api.pinata.cloud/pinning/pinJSONToIPFS",
-        {
-          pinataContent: metadata,
-          pinataMetadata: {
-              name: fileName
-          }
-        },
-        {
-          headers: {
-          "Content-Type": "application/json",
-          pinata_api_key: pinataApiKey,
-          pinata_secret_api_key: pinataSecret,
-          },
-        }
-      );
-
-      const metadataUrl = `https://gateway.pinata.cloud/ipfs/${jsonResponse.data.IpfsHash}`;
-      setIpfsUrl(metadataUrl);
-
-      return metadataUrl;
+      // const response1 = await fetch(endpoint, {
+      //   method: "POST",
+      //   body: formData,  // No need for content-type header, fetch will set it automatically (doing so might break the boundary).
+      // });
+      // const result1 = await response1.json();  // .json() is used to parse the response body
+      // if (response.ok) {}  // ok if status is 200-299
+      
+      // console.log("Response:", response1);
+      // console.log("Response: awaited .json:", result1);
+  
+      if (response.statusText === "OK") {
+        setIpfsUrl(result.metadataUrl);
+        return result.metadataUrl;
+      } else {
+        throw new Error(result.error || "Unknown error");
+      }
     } catch (error) {
       setIpfsUrl("");
       console.error("Error uploading to IPFS:", error);
@@ -156,7 +151,48 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       return null;
     }
   };
+  
 
+  // const uploadToIPFS = async () => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("image", image);
+  //     formData.append("title", title);
+  //     formData.append("description", description);
+  //     formData.append("location", location);
+  //     formData.append("totalCampaigns", await crowdfundContract.campaignCount());
+      
+  //     // For local dev server
+  //     const response = await axios.post("http://localhost:5000/api/uploadToIPFS", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     // For vercel in production
+  //     // const response = await fetch("/api/uploadToIPFS", {
+  //     //   method: "POST",
+  //     //   body: formData,
+  //     // });
+  //     console.log("Response:", response);
+  //     // const result = await response.json();
+  //     const result = response.data;
+  //     // if (response.ok) {
+  //     if (response.status === 200) {
+  //       setIpfsUrl(result.metadataUrl);
+  //       console.log("IPFS Link:", result.metadataUrl);
+  //       return result.metadataUrl;
+  //     } else {
+  //       throw new Error(result.error || "Unknown error");
+  //     }
+  //   } catch (error) {
+  //     setIpfsUrl("");
+  //     console.error("Error uploading to IPFS:", error);
+  //     alert("Failed to upload to IPFS.");
+  //     return null;
+  //   }
+  // };
+  
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -196,7 +232,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     console.log("New campaign created successfully:", txReceipt);
 
     setLoadingNewCampaign(false);
-    setImage("");
     setTitle("");
     setDescription("");
     setLocation("");
