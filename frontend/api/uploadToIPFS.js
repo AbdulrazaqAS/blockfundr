@@ -81,7 +81,7 @@ export default async function handler(req, res) {
       );
 
       const metadataUrl = `https://gateway.pinata.cloud/ipfs/${jsonResponse.data.IpfsHash}`;
-      console.log("Metadata URL:", metadataUrl);
+      // console.log("Metadata URL:", metadataUrl);
       return res.status(200).json({ metadataUrl });
     } catch (error) {
       console.error("Pinata upload error:", error);

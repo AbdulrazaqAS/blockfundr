@@ -135,7 +135,8 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       // console.log("Response:", response1);
       // console.log("Response: awaited .json:", result1);
   
-      if (response.statusText === "OK") {
+      if (response.statusText === "OK" || response.status === 200) {
+        console.log("IPFS URL:", result.metadataUrl);
         setIpfsUrl(result.metadataUrl);
         return result.metadataUrl;
       } else {
@@ -176,7 +177,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       return;
     }
 
-    if (signer){ // signer maybe null if just connected by clicking the create campaign button.
+    if (signer){ // signer maybe null if just connected by clicking the create campaign button due async nature of updating state var.
       crowdfundContract.usersCampaigns(signer.address).then((val)=>{
         setUserCampaigns(val);
       }).catch((error)=>{
