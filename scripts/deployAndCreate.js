@@ -38,41 +38,26 @@ async function main() {
     await tx.wait();
   }
 
-  let metadataUrl = campaingsJson[0].ipfsUrl;
-	let goal = ethers.parseEther(campaingsJson[0].goal.toString());
-	let duration = parseInt(campaingsJson[0].duration) * 24 * 60 * 60
+  for (let i=0; i< 6; i++){
+    const metadataUrl = campaingsJson[i].ipfsUrl;
+    let goal = ethers.parseEther(campaingsJson[i].goal.toString());
+    let duration = parseInt(campaingsJson[i].duration) * 24 * 60 * 60
 
-  const campaign0 = await createCampaign(deployer, metadataUrl, goal, duration);
-  await fundCampaign(signer1, campaign0, "1.236");
-  await fundCampaign(signer2, campaign0, "0.555");
-  await fundCampaign(signer1, campaign0, "0.900");
+    // Hardcoded values for testing
+    if (i === 0) duration = await crowdfund.MIN_DURATION();
+    if (i === 0) goal = await crowdfund.MIN_GOAL();
 
-  metadataUrl = campaingsJson[1].ipfsUrl;
-	goal = ethers.parseEther(campaingsJson[1].goal.toString());
-	duration = parseInt(campaingsJson[1].duration) * 24 * 60 * 60
-  
-  const campaign1 = await createCampaign(deployer, metadataUrl, goal, duration);
-  await fundCampaign(signer1, campaign1, "1");
-  await fundCampaign(signer2, campaign1, "0.02");
-  await fundCampaign(deployer, campaign1, "1.25");
-
-  metadataUrl = campaingsJson[2].ipfsUrl;
-	goal = ethers.parseEther(campaingsJson[2].goal.toString());
-	duration = parseInt(campaingsJson[2].duration) * 24 * 60 * 60
-  
-  const campaign2 = await createCampaign(signer1, metadataUrl, goal, duration);
-  await fundCampaign(signer1, campaign2, "0.01");
-  await fundCampaign(deployer, campaign2, "1.2");
-  await fundCampaign(deployer, campaign2, "0.25");
-
-  metadataUrl = campaingsJson[3].ipfsUrl;
-	goal = ethers.parseEther(campaingsJson[3].goal.toString());
-	duration = parseInt(campaingsJson[3].duration) * 24 * 60 * 60
-
-  const campaign3 = await createCampaign(signer1, metadataUrl, goal, duration);
-  await fundCampaign(signer1, campaign3, "0.11");
-  await fundCampaign(signer2, campaign3, "0.75");
-  await fundCampaign(signer2, campaign3, "1.05");
+    const campaignId = await createCampaign(deployer, metadataUrl, goal, duration);
+    
+    const fundings = 10;
+    for (let j=0;j<fundings;j++) {
+      let amount = Math.random() * 0.5 + 0.05;
+      amount = amount.toFixed(5);
+      let acctIdx = Math.floor(Math.random() * 3);
+      let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
+      await fundCampaign(acct, campaignId, amount);
+    }
+  }
   
   // Save the contract's artifacts and address in the frontend directory
   saveFrontendFiles(crowdfund, contractName, contractAddress);

@@ -204,7 +204,7 @@ function App() {
           updatedCampaigns[campaignIndex] = fundedCampaignObj;
           return updatedCampaigns;
         });
-      });      
+      });
 
       crowdfundContract.on("Withdrawn", async (campaignId, creator, amount) => {
         console.log("Withdrawn event:", {campaignId, creator, amount});
@@ -279,7 +279,7 @@ function App() {
           fundsRaised: refundingCampaign[5],
           totalContributors: refundingCampaign[6],
           isClosed: refundingCampaign[7],
-          isStopped: true,  // refundable campaigns are stopped
+          isStopped: true,  // refundable campaigns are already stopped
         }
 
         setClosedCampaigns((prev) => {
@@ -289,21 +289,17 @@ function App() {
           return updatedCampaigns;
         });
       });
-    }
+      console.log("Event listeners added");
 
-    return () => {
-      if (crowdfundContract) {
-        try {
-          crowdfundContract.off("CampaignCreated");
-          crowdfundContract.off("Funded");
-          crowdfundContract.off("Withdrawn");
-          crowdfundContract.off("Stopped");
-          crowdfundContract.off("Refunded");
-        } catch (error) {
-          console.error("Error removing event listener", error);
-        }
-      }
-    };
+      return () => {
+        crowdfundContract.off("CampaignCreated");
+        crowdfundContract.off("Funded");
+        crowdfundContract.off("Withdrawn");
+        crowdfundContract.off("Stopped");
+        crowdfundContract.off("Refunded");
+        console.log("Event listeners removed");
+      };
+    }
   }, [crowdfundContract]);
 
   useEffect(() => {

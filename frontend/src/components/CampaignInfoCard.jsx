@@ -27,6 +27,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [isStopping, setIsStopping] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
   const [fundsHistory, setFundsHistory] = useState([]);
+  const [refundHistory, setRefundHistory] = useState([]);
+  const [closeEvent, setCloseEvent] = useState(null);
   const [isOwner, setIsOwner] = useState(signer && signer.address === campaign.creator);
   const [error, setError] = useState(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
@@ -139,24 +141,100 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   }
 
   async function getFundedEvents(campaignId) {
-    const events = await crowdfundContract.queryFilter(
-      crowdfundContract.filters.Funded(campaignId)
-    );
+    try {
+      const events = await crowdfundContract.queryFilter(
+        crowdfundContract.filters.Funded(campaignId)
+      );
 
-    const eventsObjs = await Promise.all(
-      events.map(async (event) => {
-        const block = await provider.getBlock(event.blockNumber);
-        return {
-          campaignId: event.args.campaignId.toString(),
-          backer: event.args.backer,
-          amount: ethers.formatEther(event.args.amount),
-          transactionHash: event.transactionHash,
-          timestamp: block.timestamp,
-        };
-      })
-    );
+      const eventsObjs = await Promise.all(
+        events.map(async (event) => {
+          const block = await provider.getBlock(event.blockNumber);
+          return {
+            campaignId: event.args.campaignId.toString(),
+            backer: event.args.backer,
+            amount: ethers.formatEther(event.args.amount),
+            transactionHash: event.transactionHash,
+            timestamp: block.timestamp,
+          };
+        })
+      );
 
-    return eventsObjs;
+      return eventsObjs;
+    } catch (error) {
+      console.error("Error fetching funded events:", error);
+      return [];
+    }
+  }
+
+  async function getRefundEvents(campaignId) {
+    try {
+      const events = await crowdfundContract.queryFilter(
+        crowdfundContract.filters.Refunded(campaignId)
+      );
+
+      const eventsObjs = await Promise.all(
+        events.map(async (event) => {
+          const block = await provider.getBlock(event.blockNumber);
+          return {
+            campaignId: event.args.campaignId.toString(),
+            backer: event.args.backer,
+            amount: ethers.formatEther(event.args.amount),
+            transactionHash: event.transactionHash,
+            timestamp: block.timestamp,
+          };
+        })
+      );
+
+      return eventsObjs;
+    } catch (error) {
+      console.error("Error fetching funded events:", error);
+      return [];
+    }
+  }
+
+  async function getWithdrawEvent(campaignId) {
+    try {
+      const filter = crowdfundContract.filters.Withdrawn(null, creator);
+      const events = await crowdfundContract.queryFilter(filter);
+      const filteredEvents = events.filter((event) => event.args.campaignId.toString() === campaignId.toString());
+      const event = filteredEvents[0];
+      if (!event) return null; // No withdraw event found for this campaign
+
+      const block = await provider.getBlock(event.blockNumber);
+
+      return {
+        campaignId: event.args.campaignId.toString(),
+        creator: event.args.creator,
+        amount: ethers.formatEther(event.args.amount),
+        transactionHash: event.transactionHash,
+        timestamp: block.timestamp,
+      };
+    } catch (error) {
+      console.error("Error fetching withdraw event:", error);
+      return null;
+    }
+  }
+
+  async function getStopEvent(campaignId) {
+    try {
+      const filter = crowdfundContract.filters.Stopped();
+      const events = await crowdfundContract.queryFilter(filter);
+      const filteredEvents = events.filter((event) => event.args.campaignId.toString() === campaignId.toString());
+      const event = filteredEvents[0];
+      if (!event) return null; // No event found for this campaign
+
+      const block = await provider.getBlock(event.blockNumber);
+
+      return {
+        campaignId: event.args.campaignId.toString(),
+        byCreator: event.args.byCreator,
+        transactionHash: event.transactionHash,
+        timestamp: block.timestamp,
+      };
+    } catch (error) {
+      console.error("Error fetching stop event:", error);
+      return null;
+    }
   }
 
   async function getWithdrawableAmount(){
@@ -178,16 +256,26 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   }
 
   useEffect(() => {
-    async function fetchFundingHistory() {
-      try {
-        const fundedEvents = await getFundedEvents(id);
-        setFundsHistory(fundedEvents);
-      } catch (error) {
-        console.error("Error fetching funding history:", error);
+    async function fetchHistory() {
+      const fundedEvents = await getFundedEvents(id);
+      setFundsHistory(fundedEvents);
+
+      if (isClosed) {
+        if (isStopped) {  // Campaign was closed by stopping
+          const stopEvent = await getStopEvent(id);
+          setCloseEvent(stopEvent);
+
+          const refundEvents = await getRefundEvents(id);  // only stopped campaigns can be refunded
+          setRefundHistory(refundEvents);
+        } else {  // Campaign was closed by withdrawing funds
+          const withdrawEvent = await getWithdrawEvent(id);
+          setCloseEvent(withdrawEvent);
+        }
       }
+
     }
 
-    fetchFundingHistory();
+    fetchHistory();
     getWithdrawableAmount();
     if (signer)
       setIsOwner(signer.address === campaign.creator);
@@ -241,7 +329,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <p><strong>Funds Raised:</strong> {ethers.formatEther(fundsRaised)} ETH</p>
           {isOwner && <p><strong>Withdrawable Funds:</strong> {withdrawable} ETH (95%)</p>}
           {/* TODO: Show campaign duration */}
-          {isClosed ? (<p><strong>Duration:</strong> 0 days 0 hrs 0 mins 0 secs</p>) :
+          {isClosed ? (<p><strong>Time Remaining:</strong> 0 days 0 hrs 0 mins 0 secs</p>) :
             (<p><strong>Time Remaining:</strong> {timeRemainingStr}</p>)
           }
           <p><strong>Backers:</strong> {totalContributors.toString()}</p>
@@ -254,7 +342,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
         <div className="camapignInfo-buttons" style={{display: "inline"}}>
           <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping} onClick={() => sendFunds(fundAmount)}>
-            {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Stopped" : "Send Funds"}  {/* Priority left to right */}
+            {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Closed" : "Send Funds"}  {/* Priority left to right */}
           </button>
           {isOwner && !isClosed && (
             <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={withdraw}>
@@ -275,28 +363,74 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         {(isSending || isWithdrawing || isStopping || isRefunding) && <p className="red-p">Please don't close this card</p>}
       </div>
       <br />
-      <hr />
       
       {/* Show withdraw, refund, and stop txs */}
-      <h2>Funding History</h2>
-      <table className="funding-table">
-        <thead>
-          <tr>
-            <th>Backer</th>
-            <th>Amount (ETH)</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...fundsHistory].reverse().map((historyObj, index) => (
-            <tr key={index}>
-              <td>{historyObj.backer}</td>
-              <td>{historyObj.amount.toString().slice(0, 12)}</td>
-              <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
+      {isClosed && (
+        <section>
+          <hr />
+          <h2>Close History</h2>
+          {closeEvent && (
+            <div className="close-event-details-container">
+              <p><strong>Close Trigger:</strong> {isStopped ? "Stopped" : "Funds Withdrawn"}</p>
+              {isStopped ?
+                (<p><strong>Stopped by:</strong> {closeEvent.byCreator ? "By creator" : "By deployer"}</p>) :
+                (<p><strong>Amount:</strong> {closeEvent.amount} ETH</p>)
+              }
+              <p><strong>Transaction Hash:</strong> {closeEvent.transactionHash}</p>
+              <p><strong>Time:</strong> {new Date(closeEvent.timestamp * 1000).toLocaleString()}</p>
+            </div>
+          )}
+          <br />
+        </section>
+      )}
+
+      { isStopped && refundHistory.length > 0 && (
+        <section>
+          <hr />
+          <h2>Refunding History</h2>
+          <table className="funding-table">
+            <thead>
+              <tr>
+                <th>Backer</th>
+                <th>Amount (ETH)</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...refundHistory].reverse().map((historyObj, index) => (
+                <tr key={index}>
+                  <td>{historyObj.backer}</td>
+                  <td>{historyObj.amount.toString().slice(0, 12)}</td>
+                  <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <br />
+        </section>
+      )}
+      <section>
+        <hr />
+        <h2>Funding History</h2>
+        <table className="funding-table">
+          <thead>
+            <tr>
+              <th>Backer</th>
+              <th>Amount (ETH)</th>
+              <th>Date</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {[...fundsHistory].reverse().map((historyObj, index) => (
+              <tr key={index}>
+                <td>{historyObj.backer}</td>
+                <td>{historyObj.amount.toString().slice(0, 12)}</td>
+                <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 };

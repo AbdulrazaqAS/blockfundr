@@ -272,6 +272,14 @@ progress {
   height: 40px;
 }
 
+.close-event-details-container {
+  margin-top: 15px;
+}
+
+.close-event-details-container p {
+  margin-bottom: 5px;
+}
+
 .funding-table {
   width: 100%;
   border-collapse: collapse;
