@@ -1,6 +1,8 @@
 import {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import ErrorMessage from "./ErrorMessage";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLink } from '@fortawesome/free-solid-svg-icons';
 
 function timeRemaining(deadlineInSeconds) {
   const now = Math.floor(Date.now() / 1000); // Current time in seconds
@@ -34,6 +36,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
+
+  const blockExplorerUrl = "https://etherscan.io/tx/";
 
   const {
     id,
@@ -73,8 +77,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       setIsSending(true);
       const amountInWei = ethers.parseEther(amount);
       const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
-      await tx.wait();
-      console.log("Transaction successful:", tx);
+      const txReceipt = await tx.wait();
+      console.log("Transaction successful:", txReceipt);
       setFundAmount(0);
       // TODO: Show link to transaction on etherscan
       // window.open(`https://etherscan.io/tx/${tx.transactionHash}`, "_blank");
@@ -89,11 +93,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   async function withdraw() {
     try {
       setIsWithdrawing(true);
-      console.log("Id", id);
       const tx = await crowdfundContract.connect(signer).withdrawFunds(id);
-      // const tx = await crowdfundContract.connect(newSigner).withdrawFunds(id);
-      await tx.wait();
-      console.log("Withdraw successful:", tx);
+      const txReceipt = await tx.wait();
+      console.log("Withdraw successful:", txReceipt);
     } catch (error) {
       console.error("Error withdrawing funds:", error);
       if (error.code === "ACTION_REJECTED")
@@ -109,8 +111,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     try {
       setIsStopping(true);
       const tx = await crowdfundContract.connect(signer).stop(id);
-      await tx.wait();
-      console.log("Campaign stopped successfully:", tx);
+      const txReceipt = await tx.wait();
+      console.log("Campaign stopped successfully:", txReceipt);
     } catch (error) {
       console.error("Error stopping campaign:", error);
       if (error.code === "ACTION_REJECTED")
@@ -127,8 +129,8 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
     try {
       setIsRefunding(true);
       const tx = await crowdfundContract.connect(signer).takeRefund(id);
-      await tx.wait();
-      console.log("Refund requested successfully:", tx);
+      const txReceipt = await tx.wait();
+      console.log("Refund requested successfully:", txReceipt);
     } catch (error) {
       console.error("Error requesting refund:", error);
       if (error.code === "ACTION_REJECTED")
@@ -364,7 +366,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       </div>
       <br />
       
-      {/* Show withdraw, refund, and stop txs */}
       {isClosed && (
         <section>
           <hr />
@@ -376,7 +377,13 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
                 (<p><strong>Stopped by:</strong> {closeEvent.byCreator ? "By creator" : "By deployer"}</p>) :
                 (<p><strong>Amount:</strong> {closeEvent.amount} ETH</p>)
               }
-              <p><strong>Transaction Hash:</strong> {closeEvent.transactionHash}</p>
+              <p>
+                <strong>Transaction Hash:</strong>
+                {" "}{closeEvent.transactionHash}{" "}
+                <a href={blockExplorerUrl + closeEvent.transactionHash} target="_blank">
+                  <FontAwesomeIcon icon={faLink} />
+                </a>
+              </p>
               <p><strong>Time:</strong> {new Date(closeEvent.timestamp * 1000).toLocaleString()}</p>
             </div>
           )}
@@ -399,7 +406,12 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
             <tbody>
               {[...refundHistory].reverse().map((historyObj, index) => (
                 <tr key={index}>
-                  <td>{historyObj.backer}</td>
+                  <td>
+                    {historyObj.backer}{" "}
+                    <a href={blockExplorerUrl + historyObj.transactionHash} target="_blank">
+                      <FontAwesomeIcon icon={faLink} />
+                    </a>
+                  </td>
                   <td>{historyObj.amount.toString().slice(0, 12)}</td>
                   <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
                 </tr>
@@ -423,7 +435,12 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <tbody>
             {[...fundsHistory].reverse().map((historyObj, index) => (
               <tr key={index}>
-                <td>{historyObj.backer}</td>
+                <td>
+                  {historyObj.backer}{" "}
+                  <a href={blockExplorerUrl + historyObj.transactionHash}>
+                    <FontAwesomeIcon icon={faLink} />
+                  </a>
+                </td>
                 <td>{historyObj.amount.toString().slice(0, 12)}</td>
                 <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
               </tr>

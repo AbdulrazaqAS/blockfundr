@@ -47,7 +47,9 @@ async function main() {
     if (i === 0) duration = await crowdfund.MIN_DURATION();
     if (i === 0) goal = await crowdfund.MIN_GOAL();
 
-    const campaignId = await createCampaign(deployer, metadataUrl, goal, duration);
+    let acctIdx = Math.floor(Math.random() * 3);
+    let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
+    const campaignId = await createCampaign(acct, metadataUrl, goal, duration);
     
     const fundings = 10;
     for (let j=0;j<fundings;j++) {
