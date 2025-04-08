@@ -37,7 +37,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [withdrawable, setWithdrawable] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
 
-  const blockExplorerUrl = "https://etherscan.io/tx/";
+  const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 
   const {
     id,
