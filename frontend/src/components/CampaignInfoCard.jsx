@@ -22,7 +22,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -36,8 +36,6 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
-
-  const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 
   const {
     id,

@@ -272,11 +272,15 @@ progress {
   height: 40px;
 }
 
+.contract-panel {
+  max-width: 1200px;
+}
+
 .contract-panel fieldset {
   background-color: rgb(237, 205, 255);
   border-radius: 10px;
   padding: 10px 15px;
-  margin: 5px 0px 15px;
+  margin: 5px 0px 7px;
 }
 
 .contract-panel fieldset legend {
@@ -292,14 +296,12 @@ progress {
   background-color: rgba(62, 33, 79, 1);
   color: white;
   width: 20%;
-  margin: 0px auto;
+  margin: 0px auto 20px;
 }
 
 .contract-panel-btn:hover {
   background-color: rgba(62, 33, 79, 0.8);
-  color: white;
   width: 23%;
-  margin: 0px auto;
 }
 .close-event-details-container {
   margin-top: 15px;

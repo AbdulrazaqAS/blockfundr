@@ -15,6 +15,7 @@ import ContractPanel from './components/ContractPanel.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
 const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
+const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
@@ -380,6 +381,7 @@ function App() {
         signer={signer}
         provider={provider}
         contractAddress={contractAddress}
+        blockExplorerUrl={blockExplorerUrl}
       />
 
       {
@@ -405,6 +407,7 @@ function App() {
             signer={signer}
             setSigner={setSigner}
             provider={provider}
+            blockExplorerUrl={blockExplorerUrl}
           />
         )
       }

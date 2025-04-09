@@ -41,6 +41,7 @@ contract Crowdfund {
 
     // TODO: Make contract stopable by owner (stop creating campaigns)
     // TODO: Add setters
+    // TODO: Implement Checks-Effects-Interactions pattern
     function createCampaign(string memory _metadataUrl, uint256 _goal, uint256 _duration) external {
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
         require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
