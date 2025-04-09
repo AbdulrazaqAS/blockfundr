@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 
-export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl}){
+export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav}){
     const [isDeployer, setIsDeployer] = useState(false);
     const [amount, setAmount] = useState(0);
     const [isWithdraw, setIsWithdraw] = useState(true);
@@ -34,6 +34,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     async function withdraw(amount){
         try {
             setIsSending(true);
+            setDisableNav(true);
             const amountInWei = ethers.parseEther(amount);
             const tx = await crowdfundContract.connect(signer).withdraw(amountInWei);
             const txReceipt = await tx.wait();
@@ -44,12 +45,14 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             throw error;
         } finally {
             setIsSending(false);
+            setDisableNav(false);
         }
     }
 
     async function transfer(amount, address){
         try {
             setIsSending(true);
+            setDisableNav(true);
             const amountInWei = ethers.parseEther(amount);
             const tx = await crowdfundContract.connect(signer).transfer(amountInWei, address);
             const txReceipt = await tx.wait();
@@ -61,6 +64,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             throw error;
         } finally {
             setIsSending(false);
+            setDisableNav(false);
         }
     }
 
@@ -151,7 +155,6 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                         <input
                             type="number"
                             placeholder="Amount in eth"
-                            min={0}
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                         />

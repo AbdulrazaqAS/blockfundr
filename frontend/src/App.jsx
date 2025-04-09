@@ -27,11 +27,11 @@ function App() {
   const [totalClosedCampaigns, setTotalClosedCampaigns] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
   const [closedCampaigns, setClosedCampaigns] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
   const [showCampaignInfo, setShowCampaignInfo] = useState(null);
   const [walletError, setWalletError] = useState(null);
   const [initError, setInitError] = useState(null);
+  const [currentTab, setCurrentTab] = useState("campaigns");
+  const [disableNav, setDisableNav] = useState(false);
   
   const campaignInfoRef = useRef(null);
   
@@ -367,90 +367,91 @@ function App() {
         setSigner={setSigner}
         networkId={HARDHAT_NETWORK_ID}
         setWalletError={setWalletError}
-        showForm={showForm}
-        setShowForm={setShowForm}
-        loadingNewCampaign={loadingNewCampaign}
-        showCampaignInfo={showCampaignInfo}
-        setShowCampaignInfo={setShowCampaignInfo}
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        disableNav={disableNav}
       />
       { !walletDetected && <NoWalletDetected /> }
       { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
       { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
-      <ContractPanel
-        crowdfundContract={crowdfundContract}
-        signer={signer}
-        provider={provider}
-        contractAddress={contractAddress}
-        blockExplorerUrl={blockExplorerUrl}
-      />
-
-      {
-        showForm && (
-          <NewCampaignForm
-            crowdfundContract={crowdfundContract}
-            provider={provider}
-            signer={signer}
-            setSigner={setSigner}
-            loadingNewCampaign={loadingNewCampaign}
-            setLoadingNewCampaign={setLoadingNewCampaign}
-          />
-        )
+      {currentTab === "contractPanel" &&
+        <ContractPanel
+          crowdfundContract={crowdfundContract}
+          signer={signer}
+          provider={provider}
+          contractAddress={contractAddress}
+          blockExplorerUrl={blockExplorerUrl}
+          setDisableNav={setDisableNav}
+        />
       }
-      {
-        showCampaignInfo && (
-          <CampaignInfoCard
-            campaign= {showCampaignInfo.isClosed ? 
-              {metadata: showCampaignInfo.metadata, ...closedCampaigns[closedCampaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]} :
-              {metadata: showCampaignInfo.metadata, ...campaigns[campaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]}
-            }
-            crowdfundContract={crowdfundContract}
-            signer={signer}
-            setSigner={setSigner}
-            provider={provider}
-            blockExplorerUrl={blockExplorerUrl}
-          />
-        )
+      {currentTab === "newCampaign" &&
+        <NewCampaignForm
+          crowdfundContract={crowdfundContract}
+          provider={provider}
+          signer={signer}
+          setSigner={setSigner}
+          setDisableNav={setDisableNav}
+        />
       }
-      <section>
-        <h2 className="active-campaigns-h2">Active Campaigns ({totalActiveCampaigns})</h2>
-        <ul className="active-campaigns-container">
-          {campaigns.map((campaign) => (
-            <li key={campaign.id}>
-              <Card
-                id={campaign.id}
-                creator={campaign.creator}
-                metadataUrl={campaign.metadataUrl}
-                goal={campaign.goal} deadline={campaign.deadline}
-                fundsRaised={campaign.fundsRaised}
-                isClosed={campaign.isClosed}
-                isStopped={campaign.isStopped}
-                setShowCampaignInfo={setShowCampaignInfo}
-                scrollToCampaignInfo={scrollToCampaignInfo}
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section>
-        <h2 className="active-campaigns-h2">Closed Campaigns ({totalClosedCampaigns})</h2>
-        <ul className="active-campaigns-container">
-          {closedCampaigns.map((campaign) => (
-            <li key={campaign.id}>
-              <Card
-                id={campaign.id}
-                creator={campaign.creator}
-                metadataUrl={campaign.metadataUrl}
-                goal={campaign.goal} deadline={campaign.deadline}
-                fundsRaised={campaign.fundsRaised}
-                isClosed={campaign.isClosed}
-                isStopped={campaign.isStopped}
-                setShowCampaignInfo={setShowCampaignInfo}
-                scrollToCampaignInfo={scrollToCampaignInfo}
-              />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {currentTab === "campaigns" &&
+        <div>
+          {showCampaignInfo &&
+            <CampaignInfoCard
+              campaign= {showCampaignInfo.isClosed ? 
+                {metadata: showCampaignInfo.metadata, ...closedCampaigns[closedCampaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]} :
+                {metadata: showCampaignInfo.metadata, ...campaigns[campaigns.findIndex((obj) => obj.id === showCampaignInfo.id)]}
+              }
+              crowdfundContract={crowdfundContract}
+              signer={signer}
+              setSigner={setSigner}
+              provider={provider}
+              blockExplorerUrl={blockExplorerUrl}
+              setDisableNav={setDisableNav}
+              setShowCampaignInfo={setShowCampaignInfo}
+            />
+          }
+          <section>
+            <h2 className="active-campaigns-h2">Active Campaigns ({totalActiveCampaigns})</h2>
+            <ul className="active-campaigns-container">
+              {campaigns.map((campaign) => (
+                <li key={campaign.id}>
+                  <Card
+                    id={campaign.id}
+                    creator={campaign.creator}
+                    metadataUrl={campaign.metadataUrl}
+                    goal={campaign.goal} deadline={campaign.deadline}
+                    fundsRaised={campaign.fundsRaised}
+                    isClosed={campaign.isClosed}
+                    isStopped={campaign.isStopped}
+                    setShowCampaignInfo={setShowCampaignInfo}
+                    scrollToCampaignInfo={scrollToCampaignInfo}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <h2 className="active-campaigns-h2">Closed Campaigns ({totalClosedCampaigns})</h2>
+            <ul className="active-campaigns-container">
+              {closedCampaigns.map((campaign) => (
+                <li key={campaign.id}>
+                  <Card
+                    id={campaign.id}
+                    creator={campaign.creator}
+                    metadataUrl={campaign.metadataUrl}
+                    goal={campaign.goal} deadline={campaign.deadline}
+                    fundsRaised={campaign.fundsRaised}
+                    isClosed={campaign.isClosed}
+                    isStopped={campaign.isStopped}
+                    setShowCampaignInfo={setShowCampaignInfo}
+                    scrollToCampaignInfo={scrollToCampaignInfo}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      }
     </div>
   )
 }

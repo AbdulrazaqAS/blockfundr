@@ -14,7 +14,7 @@ function calculateDuration(date){
     return dateInSeconds - currentTime;
 }
 
-export default function CreateCampaign({ crowdfundContract, provider, signer, setSigner, loadingNewCampaign,  setLoadingNewCampaign}) {
+export default function CreateCampaign({ crowdfundContract, provider, signer, setSigner, setDisableNav }) {
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -28,6 +28,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [maxUserCampaigns, setMaxUserCampaigns] = useState(0);
   const [userCampaigns, setUserCampaigns] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
+  const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
 
   useEffect(() => {
     try {
@@ -154,12 +155,14 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     e.preventDefault();
 
     setLoadingNewCampaign(true);
+    setDisableNav(true);  // Disable nav bar while creating campaign
     setIpfsUrl("");  // Clear previous IPFS URL
     setError(null);  // Clear previous error
 
     const ipfsLink = await uploadToIPFS();
     if (!ipfsLink){
       setLoadingNewCampaign(false);
+      setDisableNav(false);
       return;
     }
 
@@ -172,6 +175,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
 
     if (!txReceipt){
       setLoadingNewCampaign(false);
+      setDisableNav(false);
       alert("Failed to create new campaign. Please try again.");
       return;
     }
@@ -187,6 +191,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     }
 
     setLoadingNewCampaign(false);
+    setDisableNav(false);
     setTitle("");
     setDescription("");
     setLocation("");
@@ -251,7 +256,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
           {loadingNewCampaign ? ipfsUrl ? "Creating campaign..." : "Uploading to IPFS..." : "Create Campaign"}
         </button>
       </form>
-
     </div>
   );
 }

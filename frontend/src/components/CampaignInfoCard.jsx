@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import ErrorMessage from "./ErrorMessage";
+import CancelBtn from "./CancelBtn";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 
@@ -22,7 +23,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -73,6 +74,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
 
     try {
       setIsSending(true);
+      setDisableNav(true);
       const amountInWei = ethers.parseEther(amount);
       const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
       const txReceipt = await tx.wait();
@@ -85,12 +87,14 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       setError(error);
     } finally {
       setIsSending(false);
+      setDisableNav(false);
     }
   }
 
   async function withdraw() {
     try {
       setIsWithdrawing(true);
+      setDisableNav(true);
       const tx = await crowdfundContract.connect(signer).withdrawFunds(id);
       const txReceipt = await tx.wait();
       console.log("Withdraw successful:", txReceipt);
@@ -102,12 +106,14 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         setError(error);
     } finally {
       setIsWithdrawing(false);
+      setDisableNav(false);
     }
   }
 
   async function stopCampaign() {
     try {
       setIsStopping(true);
+      setDisableNav(true);
       const tx = await crowdfundContract.connect(signer).stop(id);
       const txReceipt = await tx.wait();
       console.log("Campaign stopped successfully:", txReceipt);
@@ -119,6 +125,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         setError(error);
     } finally {
       setIsStopping(false);
+      setDisableNav(false);
     }
   }
 
@@ -126,6 +133,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   async function requestRefund() {
     try {
       setIsRefunding(true);
+      setDisableNav(true);
       const tx = await crowdfundContract.connect(signer).takeRefund(id);
       const txReceipt = await tx.wait();
       console.log("Refund requested successfully:", txReceipt);
@@ -137,6 +145,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
         setError(error);
     } finally {
       setIsRefunding(false);
+      setDisableNav(false);
     }
   }
 
@@ -318,6 +327,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   return (
     <div className="campaignInfoCard">
       {error && <ErrorMessage message={error.message} setErrorMessage={setError}/>}
+      <CancelBtn onClick={() => setShowCampaignInfo(null)} disabled={isRefunding || isSending || isStopping || isWithdrawing}/>
       <h1>{title}  #{id}</h1>
       <div className="campaignInfoCard-top">
         <div className="campaignInfoCard-topleft">
@@ -360,7 +370,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
             </button>
           )}
         </div>
-        {(isSending || isWithdrawing || isStopping || isRefunding) && <p className="red-p">Please don't close this card</p>}
+        {/* {(isSending || isWithdrawing || isStopping || isRefunding) && <p className="red-p">Please don't close this card</p>} */}
       </div>
       <br />
       

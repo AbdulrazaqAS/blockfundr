@@ -14,17 +14,63 @@ body {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: space-between;
+}
 
+.navbar-top {
+  justify-content: space-between;
   height: 55px;
   background-color: rgb(62, 33, 79);
   padding: 10px 10px;
 }
 
+.navbar-bottom {
+  justify-content: center;
+  background-color: rgb(174, 146, 190);
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  margin: 0px 10px;
+  height: 100%;
+  font-size: large;
+  padding: 10px;
+  border: solid 2px rgb(144, 98, 170);
+  cursor: pointer;
+}
+
+.navbar-nav:hover {
+  background-color: rgb(126, 75, 155);
+}
+
+.navbar-bottom .active {
+  background-color: rgb(62, 33, 79);
+  color: white
+}
+
+.navbar-bottom .disabled {
+  background-color: rgb(207, 199, 212);
+  color: rgb(88, 88, 88);
+  cursor: not-allowed;
+}
 
 .navbar img {
   cursor: pointer;
   height: inherit;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 1000;
+  font-size: 20px;
+  padding: 5px 10px;
+  border: solid 2px rgb(62, 33, 79);
+}
+
+.close-btn:hover {
+  background-color: rgba(62, 33, 79, 0.4);
 }
 
 .contract-balances-container {
@@ -153,7 +199,7 @@ button:disabled {
 }
 
 /* Who is this? */
-.card-btn {
+/* .card-btn {
   position: absolute;
   width: 70px;
   height: 70px;
@@ -162,7 +208,7 @@ button:disabled {
   text-align: center;
   text-decoration: none;
   font-size: xx-large;
-}
+} */
 
 #card-info {
   padding: 5% 2%;
@@ -223,6 +269,7 @@ progress {
 }
 
 .campaignInfoCard, .contract-panel {
+  position: relative;
   width: 80%;
   max-width: 900px;
   margin: 15px auto 0px;
