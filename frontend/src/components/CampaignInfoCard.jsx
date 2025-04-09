@@ -437,7 +437,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
               <tr key={index}>
                 <td>
                   {historyObj.backer}{" "}
-                  <a href={blockExplorerUrl + historyObj.transactionHash}>
+                  <a href={blockExplorerUrl + historyObj.transactionHash} target="_blank">
                     <FontAwesomeIcon icon={faLink} />
                   </a>
                 </td>

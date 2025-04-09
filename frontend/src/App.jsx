@@ -11,6 +11,7 @@ import NewCampaignForm from './components/NewCampaignForm.jsx';
 import CampaignInfoCard from './components/CampaignInfoCard';
 import NoWalletDetected from './components/NoWalletDetected';
 import ErrorMessage from './components/ErrorMessage.jsx';
+import ContractPanel from './components/ContractPanel.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
 const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
@@ -374,6 +375,13 @@ function App() {
       { !walletDetected && <NoWalletDetected /> }
       { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
       { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
+      <ContractPanel
+        crowdfundContract={crowdfundContract}
+        signer={signer}
+        provider={provider}
+        contractAddress={contractAddress}
+      />
+
       {
         showForm && (
           <NewCampaignForm

@@ -222,7 +222,7 @@ progress {
   margin: 5px 0px;
 }
 
-.campaignInfoCard {
+.campaignInfoCard, .contract-panel {
   width: 80%;
   max-width: 900px;
   margin: 15px auto 0px;
@@ -272,6 +272,35 @@ progress {
   height: 40px;
 }
 
+.contract-panel fieldset {
+  background-color: rgb(237, 205, 255);
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin: 5px 0px 15px;
+}
+
+.contract-panel fieldset legend {
+  font-weight: bold;
+  color: rgb(62, 33, 79);
+}
+
+.contract-panel fieldset label {
+  margin-right: 15px;
+}
+
+.contract-panel-btn {
+  background-color: rgba(62, 33, 79, 1);
+  color: white;
+  width: 20%;
+  margin: 0px auto;
+}
+
+.contract-panel-btn:hover {
+  background-color: rgba(62, 33, 79, 0.8);
+  color: white;
+  width: 23%;
+  margin: 0px auto;
+}
 .close-event-details-container {
   margin-top: 15px;
 }
