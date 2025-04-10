@@ -328,6 +328,10 @@ progress {
   height: 40px;
 }
 
+.faucet-url {
+  margin-top: 5px;
+}
+
 .contract-panel {
   max-width: 1200px;
 }

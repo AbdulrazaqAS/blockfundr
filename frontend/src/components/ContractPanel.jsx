@@ -169,7 +169,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                 e.preventDefault();
                 isWithdraw ? withdraw(amount) : transfer(amount, receiverAddr);
             }}>
-                <h2>Contract Panel</h2>
+                <h2>Deployer Panel</h2>
                 <fieldset>
                     <legend>Select action type:</legend>
                     <label><input type="radio" name="action-type" value="withdraw" checked={isWithdraw} onChange={() => setIsWithdraw(true)} />Withdraw</label>

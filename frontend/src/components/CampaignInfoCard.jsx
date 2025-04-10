@@ -23,7 +23,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -370,7 +370,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
             </button>
           )}
         </div>
-        {/* {(isSending || isWithdrawing || isStopping || isRefunding) && <p className="red-p">Please don't close this card</p>} */}
+      </div>
+      <div className="faucet-url">
+        {!isClosed && faucetUrl && <a href={faucetUrl} target="_blank" rel="noopener noreferrer">Want some free test Ether?</a>}
       </div>
       <br />
       

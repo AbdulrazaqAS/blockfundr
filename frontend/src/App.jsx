@@ -16,6 +16,7 @@ import ContractPanel from './components/ContractPanel.jsx';
 const HARDHAT_NETWORK_ID = '31337';
 const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
 const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
+const ALCHEMY_FAUCET_URL = "https://www.alchemy.com/faucets/ethereum-sepolia";
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
@@ -435,6 +436,7 @@ function App() {
               blockExplorerUrl={blockExplorerUrl}
               setDisableNav={setDisableNav}
               setShowCampaignInfo={setShowCampaignInfo}
+              faucetUrl={ALCHEMY_FAUCET_URL}
             />
           }
           <section>
