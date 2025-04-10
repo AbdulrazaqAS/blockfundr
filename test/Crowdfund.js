@@ -349,7 +349,7 @@ describe("Crowdfund", ()=>{
 			const {crowdfund, signer1, campaignId} = await loadFixture(fundCampaignFixture);
 
 			await expect(crowdfund.connect(signer1).withdrawFunds(campaignId))
-				.to.be.revertedWith("Only creator can withdraw");
+				.to.be.revertedWith("Only campaign creator can withdraw");
 		});
 
 		it("Should revert if campaign is closed(funds already withdrawn)", async () => {

@@ -52,8 +52,7 @@ contract Crowdfund {
         owner = msg.sender;
     }
 
-    // TODO: Add setters
-    // TODO: Implement Checks-Effects-Interactions pattern
+    // TODO: Remove constants and add setters for the vars
     function createCampaign(string memory _metadataUrl, uint256 _goal, uint256 _duration) external notInSafeMode {
         require(!noNewCampaigns, "Creating new campaigns is currently disabled. Try later.");
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
@@ -93,7 +92,7 @@ contract Crowdfund {
 
     function withdrawFunds(uint256 _campaignId) external notInSafeMode {
         Campaign storage campaign = campaigns[_campaignId];
-        require(msg.sender == campaign.creator, "Only creator can withdraw");
+        require(msg.sender == campaign.creator, "Only campaign creator can withdraw");
         require(!campaign.isClosed, "Campaign is closed. Funds already withdrawn");
         require(campaign.fundsRaised >= campaign.goal || block.timestamp > campaign.deadline, 
             "Wait for campaign to expire or reach funding goal");
@@ -102,9 +101,10 @@ contract Crowdfund {
         uint256 amount = (campaign.fundsRaised * WITHDRAW_PERCENT) / 100;
         uint256 contractAmount = campaign.fundsRaised - amount;
 
-        payable(msg.sender).transfer(amount);
-        contractBalance += contractAmount;  // Withdrawable/transferable by contract
         campaign.isClosed = true;
+        payable(msg.sender).transfer(amount);
+
+        contractBalance += contractAmount;  // Withdrawable/transferable by contract
         usersCampaigns[msg.sender]--;  // TODO: Avoid setting it to zero to reduce gas
         closedCampaigns++;
         emit Withdrawn(_campaignId, msg.sender, amount);
@@ -145,16 +145,16 @@ contract Crowdfund {
         require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for stopping
 
         campaign.fundsRaised -= contribution;
+        campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
         payable(msg.sender).transfer(contribution);
 
-        campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
         emit Refunded(_campaignId, msg.sender, contribution);
     }
 
     function withdraw(uint256 _amount) external onlyOwner notInSafeMode {
         require(_amount <= contractBalance, "No available withdrawable funds");
-        payable(owner).transfer(_amount);
         contractBalance -= _amount;
+        payable(owner).transfer(_amount);
 
         emit ContractFundsWithdrawn(_amount);
     }
@@ -162,8 +162,8 @@ contract Crowdfund {
     function transfer(uint256 _amount, address _receiver) external onlyOwner notInSafeMode {
         require(_receiver != owner, "Owner should use withdraw function");
         require(_amount <= contractBalance, "No available transferrable funds");
-        payable(_receiver).transfer(_amount);
         contractBalance -= _amount;
+        payable(_receiver).transfer(_amount);
 
         emit ContractFundsTransferred(_receiver, _amount);
     }
