@@ -16,6 +16,7 @@ contract Crowdfund {
 
     address public owner;
     bool public inSafeMode = false;
+    bool public noNewCampaigns = false;
     uint256 public campaignCount;
     uint256 public closedCampaigns;
     uint256 public contractBalance;
@@ -42,14 +43,19 @@ contract Crowdfund {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
     constructor () {
         owner = msg.sender;
     }
 
-    // TODO: Make contract stopable by owner (stop creating campaigns)
     // TODO: Add setters
     // TODO: Implement Checks-Effects-Interactions pattern
     function createCampaign(string memory _metadataUrl, uint256 _goal, uint256 _duration) external notInSafeMode {
+        require(!noNewCampaigns, "Creating new campaigns is currently disabled. Try later.");
         require(_goal >= MIN_GOAL, "Goal must be greater than MIN_GOAL");
         require(_duration >= MIN_DURATION, "Duration must be greater than MIN_DURATION");
         require(msg.sender == owner || usersCampaigns[msg.sender] < MAX_CAMPAIGNS,
@@ -117,7 +123,7 @@ contract Crowdfund {
         usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--
         closedCampaigns++;
 
-        // Penlaty for closing an ongoing campaign. To avoid malicious acts.
+        // Penalty for closing an ongoing campaign. To avoid malicious acts.
         uint256 creatorContribution = getContribution(_campaignId, campaign.creator);
         if (creatorContribution > 0) {
             contractBalance += creatorContribution;
@@ -145,8 +151,7 @@ contract Crowdfund {
         emit Refunded(_campaignId, msg.sender, contribution);
     }
 
-    function withdraw(uint256 _amount) external notInSafeMode {
-        require(msg.sender == owner, "Only contract owner can withdraw");
+    function withdraw(uint256 _amount) external onlyOwner notInSafeMode {
         require(_amount <= contractBalance, "No available withdrawable funds");
         payable(owner).transfer(_amount);
         contractBalance -= _amount;
@@ -154,8 +159,7 @@ contract Crowdfund {
         emit ContractFundsWithdrawn(_amount);
     }
 
-    function transfer(uint256 _amount, address _receiver) external notInSafeMode {
-        require(msg.sender == owner, "Only contract owner can transfer");
+    function transfer(uint256 _amount, address _receiver) external onlyOwner notInSafeMode {
         require(_receiver != owner, "Owner should use withdraw function");
         require(_amount <= contractBalance, "No available transferrable funds");
         payable(_receiver).transfer(_amount);
@@ -164,11 +168,14 @@ contract Crowdfund {
         emit ContractFundsTransferred(_receiver, _amount);
     }
 
-    function setSafeMode(bool _inSafeMode) external {
-        require(msg.sender == owner, "Only deployer can call this function");
+    function setSafeMode(bool _inSafeMode) external onlyOwner {
         require(inSafeMode != _inSafeMode, "Contract is already in this state");
-
         inSafeMode = _inSafeMode;
+    }
+
+    function setNoNewCampaigns(bool _status) external onlyOwner notInSafeMode {
+        require(noNewCampaigns != _status, "New status can't be same as current");
+        noNewCampaigns = _status;
     }
 
     function getContribution(uint256 _campaignId, address _contributor) public view returns (uint256) {

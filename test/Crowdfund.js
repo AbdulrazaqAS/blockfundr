@@ -140,6 +140,77 @@ describe("Crowdfund", ()=>{
 	        		"Goal must be greater than MIN_GOAL"
 	        	);
 	    });
+
+		describe("Disabling new campaigns creation", () => {
+			it("Should activate noNewCampaigns", async () => {
+				const { crowdfund } = await loadFixture(deployContractFixture);
+				const tx = await crowdfund.setNoNewCampaigns(true);
+				// no need for waiting mining while testing, delete all the rest :)
+				
+				expect(await crowdfund.noNewCampaigns()).to.be.equal(true);
+			});
+
+			it("Should revert if caller is not contract owner", async () => {
+				const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+				
+				await expect(crowdfund.connect(signer1).setNoNewCampaigns(true))
+					.to.be.revertedWith("Only owner can call this function");
+			});
+
+			it("Should revert when creating new campaign", async () => {
+				const { crowdfund } = await loadFixture(deployContractFixture);
+				const tx = await crowdfund.setNoNewCampaigns(true);
+				
+				
+				await expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+					.to.be.revertedWith("Creating new campaigns is currently disabled. Try later.");
+			});
+
+			it("Should revert if new state is same as current state (true)", async () => {
+				const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+				const tx = await crowdfund.setNoNewCampaigns(true);
+				
+				await expect(crowdfund.setNoNewCampaigns(true))
+					.to.be.revertedWith("New status can't be same as current");
+			});
+
+			it("Should revert if new state is same as current state (false)", async () => {
+				const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+				
+				await expect(crowdfund.setNoNewCampaigns(false))
+					.to.be.revertedWith("New status can't be same as current");
+			});
+
+			it("Should deactivate noNewCampaigns", async () => {
+				const { crowdfund } = await loadFixture(deployContractFixture);
+				await crowdfund.setNoNewCampaigns(true);
+				assert(await crowdfund.noNewCampaigns(), "NoNewCampaigns not activated");
+				await crowdfund.setNoNewCampaigns(false);
+				// no need for waiting mining while testing, delete all the rest :)
+				
+				expect(await crowdfund.noNewCampaigns()).to.be.equal(false);
+			});
+
+			it("Should revert if deactivation by non owner", async () => {
+				const { crowdfund, signer1 } = await loadFixture(deployContractFixture);
+				await crowdfund.setNoNewCampaigns(true);
+				assert(await crowdfund.noNewCampaigns(), "NoNewCampaigns not activated");
+				
+				await expect(crowdfund.connect(signer1).setNoNewCampaigns(false))
+					.to.be.revertedWith("Only owner can call this function");
+			});
+
+			it("Should create new campaign after deactivation", async () => {
+				const { crowdfund } = await loadFixture(deployContractFixture);
+				await crowdfund.setNoNewCampaigns(true);
+				assert(await crowdfund.noNewCampaigns(), "NoNewCampaigns not activated");
+				await crowdfund.setNoNewCampaigns(false);
+				// no need for waiting mining while testing, delete all the rest :)
+				
+				await expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+				.not.to.be.revertedWith("Creating new campaigns is currently disabled. Try later.");
+			});
+		});
 	});
 
 	describe ("Funding campaign", () => {
@@ -496,7 +567,7 @@ describe("Crowdfund", ()=>{
 			it("Should revert if not admin", async () => {
 				const { crowdfund, signer1 , amount} = await loadFixture(fundCampaignFixture);
 				await expect(crowdfund.connect(signer1).withdraw(amount / 2n))
-					.to.be.revertedWith("Only contract owner can withdraw");
+					.to.be.revertedWith("Only owner can call this function");
 			});
 	
 			it("Should revert if withdrawAmount > contractBalance ", async () => {
@@ -531,7 +602,7 @@ describe("Crowdfund", ()=>{
 			it("Should revert if not admin", async () => {
 				const { crowdfund, signer1 , amount} = await loadFixture(fundCampaignFixture);
 				await expect(crowdfund.connect(signer1).transfer(amount / 2n, signer1.address))
-					.to.be.revertedWith("Only contract owner can transfer");
+					.to.be.revertedWith("Only owner can call this function");
 			});
 			
 			it("Should revert if admin is the receiver", async () => {
@@ -624,10 +695,27 @@ describe("Crowdfund", ()=>{
 				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
 		});
 
+		it("Should revert on activating noNewCampaigns", async () => {
+			const {crowdfund, signer1} = await loadFixture(safeModeFixture);
+			await expect(crowdfund.setNoNewCampaigns(true))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on deactivating noNewCampaigns", async () => {
+			const {crowdfund} = await loadFixture(safeModeFixture);
+			await crowdfund.setSafeMode(false);
+			await crowdfund.setNoNewCampaigns(true);
+			await crowdfund.setSafeMode(true);
+			assert(await crowdfund.noNewCampaigns(), "NoNewCamapigns is not activated");
+
+			await expect(crowdfund.setNoNewCampaigns(false))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
 		it("Should revert if caller is not deployer", async () => {
 			const {crowdfund, signer1} = await loadFixture(deployContractFixture);
 			await expect(crowdfund.connect(signer1).setSafeMode(true))
-				.to.be.revertedWith("Only deployer can call this function");
+				.to.be.revertedWith("Only owner can call this function");
 		});
 
 		it("Should revert if already in safe mode", async () => {
@@ -675,7 +763,7 @@ describe("Crowdfund", ()=>{
 			const {crowdfund, signer1} = await loadFixture(safeModeFixture);
 			
 			await expect(crowdfund.connect(signer1).setSafeMode(false))
-			.to.be.revertedWith("Only deployer can call this function");
+			.to.be.revertedWith("Only owner can call this function");
 		});
 
 		it("Should not revert txs after deactivation", async () => {
