@@ -149,10 +149,8 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             const allEvents = [...withdrawEvents, ...transferEvents, ...increaseEvents];
             allEvents.sort((a, b) => b.timestamp - a.timestamp);
             setFundsHistory(allEvents);
-            console.log("Reloaded history");
         };
         fetchEvents();
-        console.log("Called");
     }, [crowdfundContract, reloadContractPanelVar]);
 
     useEffect(() => {

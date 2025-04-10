@@ -64,6 +64,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, 
 
 	return (
 		<div className="card" onClick={handleClick}>
+            <h3 className="card-campaignId">#{id}</h3>
             <img id="card-img" src={metadata ? metadata.image : "blockfundr_profile.png"} alt="campaign-cover-image"/>
             <div id="card-info">
                 <h3>By: {creator.slice(0, 7) + "....." + creator.slice(37)}</h3>

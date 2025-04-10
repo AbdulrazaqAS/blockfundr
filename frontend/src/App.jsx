@@ -302,7 +302,7 @@ function App() {
 
       crowdfundContract.on("ContractFundsWithdrawn", async (amount) => {
         console.log("ContractFundsWithdrawn event:", { amount });
-        console.log("Tab", currentTab, currentTab !== "contractPanel")
+        
         if (currentTab !== "contractPanel") return;
         setReloadContractPanelVar(prev => prev + 1);
       });
