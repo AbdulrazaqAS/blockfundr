@@ -32,6 +32,7 @@ function App() {
   const [initError, setInitError] = useState(null);
   const [currentTab, setCurrentTab] = useState("campaigns");
   const [disableNav, setDisableNav] = useState(false);
+  const [reloadContractPanelVar, setReloadContractPanelVar] = useState(false)
   
   const campaignInfoRef = useRef(null);
   
@@ -291,6 +292,22 @@ function App() {
           return updatedCampaigns;
         });
       });
+
+      crowdfundContract.on("ContractFundsWithdrawn", async (amount) => {
+        console.log("ContractFundsWithdrawn event:", { amount });
+
+        if (currentTab !== "contractPanel") return;
+        setReloadContractPanelVar(prev => prev + 1);
+        console.log("Reloading Contract panel");
+      });
+      
+      crowdfundContract.on("ContractFundsTransferred", async (receiver, amount) => {
+        console.log("ContractFundsTransferred event:", { receiver, amount });
+
+        if (currentTab !== "contractPanel") return;
+        setReloadContractPanelVar(prev => prev + 1);
+      });
+
       console.log("Event listeners added");
 
       return () => {
@@ -299,6 +316,8 @@ function App() {
         crowdfundContract.off("Withdrawn");
         crowdfundContract.off("Stopped");
         crowdfundContract.off("Refunded");
+        crowdfundContract.off("ContractFundsWithdrawn");
+        crowdfundContract.off("ContractFundsTransferred");
         console.log("Event listeners removed");
       };
     }
@@ -382,6 +401,7 @@ function App() {
           contractAddress={contractAddress}
           blockExplorerUrl={blockExplorerUrl}
           setDisableNav={setDisableNav}
+          reloadContractPanelVar={reloadContractPanelVar}
         />
       }
       {currentTab === "newCampaign" &&

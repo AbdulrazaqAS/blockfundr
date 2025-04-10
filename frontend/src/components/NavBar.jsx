@@ -38,8 +38,8 @@ const NavBar = forwardRef((props, ref) => {
   }, [provider, crowdfundContract]);
 
   return (
-    <div>
-      <div ref={ref} className="navbar navbar-top">
+    <div ref={ref}>
+      <div className="navbar navbar-top">
         <img src="blockfundr_cover.png" alt="logo"/>
         <div className="contract-balances-container">
           <p className="contract-balance">Total Eth<br />{totalBalance.toString().slice(0, 7)}</p>
@@ -47,7 +47,7 @@ const NavBar = forwardRef((props, ref) => {
         </div>
         <ConnectBtn walletDetected={walletDetected} setWalletError={setWalletError} networkId={networkId} address={address} provider={provider} signer={signer} setSigner={setSigner}/>
       </div>
-      <nav ref={ref} className="navbar navbar-bottom">
+      <nav className="navbar navbar-bottom">
         <div
           className={`navbar-nav ${disableNav ? "disabled" : ""} ${currentTab === "campaigns" ? "active" : ""}`}
           onClick={() => changeTab("campaigns")}

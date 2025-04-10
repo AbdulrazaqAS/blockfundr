@@ -375,7 +375,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       <br />
       
       {isClosed && (
-        <section>
+        <section className="overflow-section">
           <hr />
           <h2>Close History</h2>
           {closeEvent && (
@@ -400,7 +400,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       )}
 
       { isStopped && refundHistory.length > 0 && (
-        <section>
+        <section className="overflow-section">
           <hr />
           <h2>Refunding History</h2>
           <table className="funding-table">
@@ -429,7 +429,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
           <br />
         </section>
       )}
-      <section>
+      <section className="overflow-section">
         <hr />
         <h2>Funding History</h2>
         <table className="funding-table">

@@ -234,7 +234,6 @@ progress {
 #newCampaignContainer button {
   background-color: rgba(62, 33, 79, 1);
   color: white;
-  width: 40%;
   margin: 0px auto;
 }
 
@@ -359,10 +358,15 @@ progress {
 }
 
 .funding-table {
-  width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
+  width: 100%;
 }
+
+.overflow-section {
+  overflow-x: auto;
+}
+
 .funding-table th, .funding-table td {
   border: 1px solid #ddd;
   padding: 10px;

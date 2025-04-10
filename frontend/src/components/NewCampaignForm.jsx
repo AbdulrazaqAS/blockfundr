@@ -32,7 +32,6 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
 
   useEffect(() => {
     try {
-      // TODO: show "loading min value" below these fields in the form. Even though they will be loaded fast.
       const minDuration = crowdfundContract.MIN_DURATION();
       const minGoal = crowdfundContract.MIN_GOAL();
       Promise.all([minDuration, minGoal]).then((arr)=>{

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 
-export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav}){
+export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar }){
     const [isDeployer, setIsDeployer] = useState(false);
     const [amount, setAmount] = useState(0);
     const [isWithdraw, setIsWithdraw] = useState(true);
@@ -11,25 +11,6 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     const [contractBalance, setContractBalance] = useState(0);
     const [isSending, setIsSending] = useState(false);
     const [fundsHistory, setFundsHistory] = useState([]);
-
-    useEffect(() => {
-        if (!provider || !contractAddress || !crowdfundContract) return;
-
-        const fetchContractBalance = async () => {
-            try {
-              const contractBalance = await crowdfundContract.contractBalance();
-              setContractBalance(ethers.formatEther(contractBalance));
-            } catch (error) {
-              setContractBalance(0);
-              console.error("Error fetching contract balance:", error);
-            }
-        };
-    
-        fetchContractBalance();
-    
-        const interval = setInterval(fetchContractBalance, 1500);
-        return () => clearInterval(interval);
-      }, [provider, crowdfundContract]);
 
     async function withdraw(amount){
         try {
@@ -116,6 +97,25 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     }
 
     useEffect(() => {
+        if (!provider || !contractAddress || !crowdfundContract) return;
+
+        const fetchContractBalance = async () => {
+            try {
+              const contractBalance = await crowdfundContract.contractBalance();
+              setContractBalance(ethers.formatEther(contractBalance));
+            } catch (error) {
+              setContractBalance(0);
+              console.error("Error fetching contract balance:", error);
+            }
+        };
+    
+        fetchContractBalance();
+    
+        const interval = setInterval(fetchContractBalance, 1500);
+        return () => clearInterval(interval);
+      }, [provider, crowdfundContract]);
+
+    useEffect(() => {
         if (!crowdfundContract) return;
         const fetchEvents = async () => {
             const withdrawEvents = await getWithdrawEvents();
@@ -125,7 +125,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             setFundsHistory(allEvents);
         };
         fetchEvents();
-    }, [crowdfundContract]);
+    }, [crowdfundContract, reloadContractPanelVar]);
 
     useEffect(() => {
         if (!crowdfundContract || !signer) return;
@@ -149,7 +149,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     <label><input type="radio" name="action-type" value="withdraw" checked={isWithdraw} onChange={() => setIsWithdraw(true)} />Withdraw</label>
                     <label><input type="radio" name="action-type" value="transfer" checked={!isWithdraw} onChange={() => setIsWithdraw(false)} />Transfer</label>
                 </fieldset>
-                <div className="">
+                <div>
                     <div className="formFieldBox">
                         <label>Amount</label>
                         <input
@@ -182,7 +182,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                 <hr />
             </form>
             }
-            <section>
+            <section className="overflow-section">
                 <h2>Contract Funds History</h2>
                 <table className="funding-table">
                     <thead>
