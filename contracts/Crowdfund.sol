@@ -32,6 +32,7 @@ contract Crowdfund {
     event Withdrawn(uint256 campaignId, address indexed creator, uint256 amount);
     event Refunded(uint256 indexed campaignId, address indexed backer, uint256 amount);
     event Stopped(uint256 campaignId, bool byCreator);
+    event ContractFundsIncreased(uint256 indexed actionType, uint256 campaignId, uint256 amount);
     event ContractFundsWithdrawn(uint256 amount);
     event ContractFundsTransferred(address indexed receiver, uint256 amount);
 
@@ -95,6 +96,7 @@ contract Crowdfund {
         usersCampaigns[msg.sender]--;  // TODO: Avoid setting it to zero to reduce gas
         closedCampaigns++;
         emit Withdrawn(_campaignId, msg.sender, amount);
+        emit ContractFundsIncreased(0, _campaignId, contractAmount);
     }
 
     function stop(uint256 _campaignId) external {
@@ -112,7 +114,9 @@ contract Crowdfund {
         // Penlaty for closing an ongoing campaign. To avoid malicious acts.
         uint256 creatorContribution = getContribution(_campaignId, campaign.creator);
         if (creatorContribution > 0) {
-            contractBalance += creatorContribution;  // Should this reduce the amount raised just like refunding?
+            contractBalance += creatorContribution;
+            campaign.fundsRaised -= creatorContribution;
+            emit ContractFundsIncreased(1, _campaignId, creatorContribution);
             // No need to change the contributed amount to 0 since creators can't take refund
         }
 
@@ -128,8 +132,8 @@ contract Crowdfund {
         Campaign storage campaign = campaigns[_campaignId];
         require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for stopping
 
-        payable(msg.sender).transfer(contribution);
         campaign.fundsRaised -= contribution;
+        payable(msg.sender).transfer(contribution);
 
         campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
         emit Refunded(_campaignId, msg.sender, contribution);

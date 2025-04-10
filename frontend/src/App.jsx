@@ -293,12 +293,18 @@ function App() {
         });
       });
 
-      crowdfundContract.on("ContractFundsWithdrawn", async (amount) => {
-        console.log("ContractFundsWithdrawn event:", { amount });
+      crowdfundContract.on("ContractFundsIncreased", async (actionType, campaignId, amount) => {
+        console.log("ContractFundsIncreased event:", { actionType, campaignId, amount });
 
         if (currentTab !== "contractPanel") return;
         setReloadContractPanelVar(prev => prev + 1);
-        console.log("Reloading Contract panel");
+      });
+
+      crowdfundContract.on("ContractFundsWithdrawn", async (amount) => {
+        console.log("ContractFundsWithdrawn event:", { amount });
+        console.log("Tab", currentTab, currentTab !== "contractPanel")
+        if (currentTab !== "contractPanel") return;
+        setReloadContractPanelVar(prev => prev + 1);
       });
       
       crowdfundContract.on("ContractFundsTransferred", async (receiver, amount) => {
@@ -316,6 +322,7 @@ function App() {
         crowdfundContract.off("Withdrawn");
         crowdfundContract.off("Stopped");
         crowdfundContract.off("Refunded");
+        crowdfundContract.off("ContractFundsIncreased");
         crowdfundContract.off("ContractFundsWithdrawn");
         crowdfundContract.off("ContractFundsTransferred");
         console.log("Event listeners removed");

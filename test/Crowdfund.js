@@ -238,6 +238,7 @@ describe("Crowdfund", ()=>{
 		});
 
 		// TODO: should reduce the number of user campaigns by 1
+		// TODO: should emit ContractFundsIncreased
 
 		it("Should update balances after withdrawing (many backers)", async () => {
 		    const { owner, signer1, crowdfund, campaignId, amount } = await loadFixture(fundCampaignFixture);
@@ -334,6 +335,7 @@ describe("Crowdfund", ()=>{
 
 			// TODO: should revert if already stopped or closed
 			// TODO: should reduce the number of user campaigns by 1
+			// TODO: should emit ContractFundsIncreased
 
 			it("Should transfer creator contribution to contract balance", async () => {
 				const {crowdfund} = await loadFixture(deployContractFixture);

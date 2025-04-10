@@ -43,21 +43,25 @@ async function main() {
     let goal = ethers.parseEther(campaingsJson[i].goal.toString());
     let duration = parseInt(campaingsJson[i].duration) * 24 * 60 * 60
 
-    // Hardcoded values for testing
-    if (i === 0) duration = await crowdfund.MIN_DURATION();
-    if (i === 0) goal = await crowdfund.MIN_GOAL();
+    try {
+      // Hardcoded values for testing
+      if (i === 0) duration = await crowdfund.MIN_DURATION();
+      if (i === 0) goal = await crowdfund.MIN_GOAL();
 
-    let acctIdx = Math.floor(Math.random() * 3);
-    let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
-    const campaignId = await createCampaign(acct, metadataUrl, goal, duration);
-    
-    const fundings = 10;
-    for (let j=0;j<fundings;j++) {
-      let amount = Math.random() * 0.5 + 0.05;
-      amount = amount.toFixed(5);
       let acctIdx = Math.floor(Math.random() * 3);
       let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
-      await fundCampaign(acct, campaignId, amount);
+      const campaignId = await createCampaign(acct, metadataUrl, goal, duration);
+      
+      const fundings = 10;
+      for (let j=0;j<fundings;j++) {
+        let amount = Math.random() * 0.5 + 0.05;
+        amount = amount.toFixed(5);
+        let acctIdx = Math.floor(Math.random() * 3);
+        let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
+        await fundCampaign(acct, campaignId, amount);
+      }
+    } catch (error) {
+      console.error("Error:", error.name);
     }
   }
   

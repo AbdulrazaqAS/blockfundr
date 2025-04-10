@@ -61,13 +61,38 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     type: "withdraw",
                     amount: ethers.formatEther(event.args.amount),
                     transactionHash: event.transactionHash,
-                    timestamp: block.timestamp * 1000,
+                    timestamp: block.timestamp,
                 };
                 }
             ));
             return withdrawEvents;
         } catch (error) {
             console.error("Error fetching withdraw events:", error);
+            return [];
+        }
+    }
+    
+    async function getFundsIncreaseEvents() {
+        try {
+            const filter = crowdfundContract.filters.ContractFundsIncreased();
+            const events = await crowdfundContract.queryFilter(filter);
+            
+            const withdrawEvents = await Promise.all(
+                events.map(async event => {
+                const block = await provider.getBlock(event.blockNumber);
+                return {
+                    type: "increased",
+                    actionType: event.args.actionType,
+                    campaignId: event.args.campaignId,
+                    amount: ethers.formatEther(event.args.amount),
+                    transactionHash: event.transactionHash,
+                    timestamp: block.timestamp,
+                };
+                }
+            ));
+            return withdrawEvents;
+        } catch (error) {
+            console.error("Error fetching funds increase events:", error);
             return [];
         }
     }
@@ -85,7 +110,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     amount: ethers.formatEther(event.args.amount),
                     receiver: event.args.receiver,
                     transactionHash: event.transactionHash,
-                    timestamp: block.timestamp * 1000,
+                    timestamp: block.timestamp,
                 };
                 }
             ));
@@ -120,11 +145,14 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
         const fetchEvents = async () => {
             const withdrawEvents = await getWithdrawEvents();
             const transferEvents = await getTransferEvents();
-            const allEvents = [...withdrawEvents, ...transferEvents]
+            const increaseEvents = await getFundsIncreaseEvents();
+            const allEvents = [...withdrawEvents, ...transferEvents, ...increaseEvents];
             allEvents.sort((a, b) => b.timestamp - a.timestamp);
             setFundsHistory(allEvents);
+            console.log("Reloaded history");
         };
         fetchEvents();
+        console.log("Called");
     }, [crowdfundContract, reloadContractPanelVar]);
 
     useEffect(() => {
@@ -188,7 +216,8 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     <thead>
                     <tr>
                         <th>Type</th>
-                        <th>Receiver</th>
+                        <th>From</th>
+                        <th>To</th>
                         <th>Amount (ETH)</th>
                         <th>Date</th>
                     </tr>
@@ -196,16 +225,23 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     <tbody>
                     {[...fundsHistory].map((historyObj, index) => (
                         <tr key={index}>
-                        <td>{historyObj.type.toUpperCase()}</td>
                         <td>
-                            {historyObj.type === "transfer" ?
-                                historyObj.receiver :
-                                "Deployer"
-                            }
+                            {historyObj.type.toUpperCase()}
                             {" "}
                             <a href={blockExplorerUrl + historyObj.transactionHash} target="_blank">
                             <FontAwesomeIcon icon={faLink} />
                             </a>
+                        </td>
+                        <td>{historyObj.type === "increased" ?
+                                "Campaign#" + historyObj.campaignId :
+                                "Contract"  // For withdraw and transfer events
+                            }
+                        </td>
+                        <td>
+                            {historyObj.type === "transfer" ? historyObj.receiver :
+                             historyObj.type === "withdraw" ? "Deployer" :
+                             "Contract Balance"
+                            }
                         </td>
                         <td>{historyObj.amount.toString().slice(0, 12)}</td>
                         <td>{new Date(historyObj.timestamp * 1000).toLocaleString()}</td>
