@@ -59,6 +59,14 @@ describe("Crowdfund", ()=>{
 		return { owner, signer1, crowdfund, campaignId, amount, withdrawAmount, amountRaised, withdrawable};
 	}
 
+	async function safeModeFixture() {
+		const { owner, signer1, crowdfund, campaignId } = await loadFixture(createCampaignFixture);
+		const tx = await crowdfund.setSafeMode(true);
+		await tx.wait();
+
+		return {owner, signer1, crowdfund, campaignId};
+	}
+
 	describe ("Creating campaign", ()=>{
 		it ("Should emit create event", async ()=>{
 			const { crowdfund } = await loadFixture(deployContractFixture);
@@ -560,5 +568,139 @@ describe("Crowdfund", ()=>{
 			});
 		});
 		
+	});
+
+	describe("Safe Mode", () => {
+		it("Should turn on safe mode", async () => {
+			const {crowdfund} = await loadFixture(deployContractFixture);
+			const tx = await crowdfund.setSafeMode(true);
+			await tx.wait();
+
+			expect(await crowdfund.inSafeMode()).to.equal(true);
+		});
+		
+		it("Should revert on creating campaign", async () => {
+			const {crowdfund} = await loadFixture(safeModeFixture);
+			await expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on sending funds", async () => {
+			const {crowdfund, campaignId} = await loadFixture(safeModeFixture);
+			const amount = ethers.parseEther("5");
+			await expect(crowdfund.fundCampaign(campaignId, {value: amount}))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on withdrawing campaign funds", async () => {
+			const {crowdfund, campaignId} = await loadFixture(safeModeFixture);
+			await expect(crowdfund.withdrawFunds(campaignId))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on stopping a campaign", async () => {
+			const {crowdfund, campaignId} = await loadFixture(safeModeFixture);
+			await expect(crowdfund.stop(campaignId))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on requesting refund", async () => {
+			const {crowdfund, campaignId} = await loadFixture(safeModeFixture);
+			await expect(crowdfund.takeRefund(campaignId))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on withdrawing contract funds", async () => {
+			const {crowdfund} = await loadFixture(safeModeFixture);
+			const amount = ethers.parseEther("5");
+			await expect(crowdfund.withdraw(amount))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert on transferring contract funds", async () => {
+			const {crowdfund, signer1} = await loadFixture(safeModeFixture);
+			const amount = ethers.parseEther("5");
+			await expect(crowdfund.transfer(amount, signer1))
+				.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+		});
+
+		it("Should revert if caller is not deployer", async () => {
+			const {crowdfund, signer1} = await loadFixture(deployContractFixture);
+			await expect(crowdfund.connect(signer1).setSafeMode(true))
+				.to.be.revertedWith("Only deployer can call this function");
+		});
+
+		it("Should revert if already in safe mode", async () => {
+			const {crowdfund} = await loadFixture(deployContractFixture);
+			const tx = await crowdfund.setSafeMode(true);
+			await tx.wait();
+
+			await expect(crowdfund.setSafeMode(true))
+				.to.be.revertedWith("Contract is already in this state");
+		});
+
+		it("Should revert if setting safe mode to false while already false", async () => {
+			const {crowdfund} = await loadFixture(deployContractFixture);
+			
+			await expect(crowdfund.setSafeMode(false))
+				.to.be.revertedWith("Contract is already in this state");
+		});
+
+		it("Should not revert read-only functions", async () => {
+			const {crowdfund, signer1, campaignId} = await loadFixture(safeModeFixture);
+			
+			await expect(crowdfund.getContribution(campaignId, signer1))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.calculateWithdrawAmount(campaignId))
+				.not.to.be.reverted;
+			await expect(crowdfund.isStopped(campaignId))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.isClosed(campaignId))
+				.not.to.be.reverted;
+			await expect(crowdfund.owner())
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.campaignCount())
+				.not.to.be.reverted;
+		});
+
+		it("Should deactivate safe mode", async () => {
+			const {crowdfund} = await loadFixture(safeModeFixture);
+			const tx = await crowdfund.setSafeMode(false);
+			await tx.wait();
+
+			expect(await crowdfund.inSafeMode()).to.equal(false);
+		});
+
+		it("Should revert if deactivation by non deployer", async () => {
+			const {crowdfund, signer1} = await loadFixture(safeModeFixture);
+			
+			await expect(crowdfund.connect(signer1).setSafeMode(false))
+			.to.be.revertedWith("Only deployer can call this function");
+		});
+
+		it("Should not revert txs after deactivation", async () => {
+			const {crowdfund, signer1, campaignId} = await loadFixture(safeModeFixture);
+			const tx = await crowdfund.setSafeMode(false);
+			await tx.wait();
+			assert(await crowdfund.inSafeMode() === false, "Still in safe mode");
+
+			const amount = ethers.parseEther("5");
+
+			await expect(crowdfund.createCampaign(metadataUrl, goal, duration))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.fundCampaign(campaignId, {value: amount}))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.withdrawFunds(campaignId))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.stop(campaignId))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.takeRefund(campaignId))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.withdraw(amount * 2n))  // Should be > amount bcoz .stop has made all funds withdrawable
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			await expect(crowdfund.transfer(amount * 2n, signer1))
+				.not.to.be.revertedWith("Contract is in safe mode (READ ONLY)");
+			
+		});
 	});
 });
