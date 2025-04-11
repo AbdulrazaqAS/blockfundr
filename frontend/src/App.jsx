@@ -33,7 +33,8 @@ function App() {
   const [initError, setInitError] = useState(null);
   const [currentTab, setCurrentTab] = useState("campaigns");
   const [disableNav, setDisableNav] = useState(false);
-  const [reloadContractPanelVar, setReloadContractPanelVar] = useState(false)
+  const [reloadContractPanelVar, setReloadContractPanelVar] = useState(false);
+  const [inSafeMode, setInSafeMode] = useState(false);
   
   const campaignInfoRef = useRef(null);
   
@@ -76,6 +77,57 @@ function App() {
       else
         return prev
     });
+  }
+
+  async function getCampaignsCount(){
+    let totalCampaigns = await crowdfundContract.campaignCount();
+    let totalClosedCampaigns = await crowdfundContract.closedCampaigns();
+    let totalActiveCampaigns = totalCampaigns - totalClosedCampaigns;
+
+    totalCampaigns = totalCampaigns.toString();
+    totalActiveCampaigns = totalActiveCampaigns.toString();
+    totalClosedCampaigns = totalClosedCampaigns.toString();
+
+    return { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns };
+  }
+
+  async function loadCampaigns(){
+    try {
+      const { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
+      setTotalCampaigns(totalActiveCampaigns);
+      setTotalClosedCampaigns(totalClosedCampaigns);
+
+      // TODO: use Promise.all here to load faster
+      const loadedCampaigns = [];
+      const closedLoadedCampaigns = [];
+
+      for (let i=0;i<totalCampaigns;i++){
+        const campaign = await crowdfundContract.campaigns(i);
+
+        const campaignObj = {
+          id: campaign[0],
+          creator: campaign[1],
+          metadataUrl: campaign[2],
+          goal: campaign[3],
+          deadline: campaign[4],
+          fundsRaised: campaign[5],
+          totalContributors: campaign[6],
+          isClosed: campaign[7],
+        }
+
+        const isStopped = await crowdfundContract.isStopped(campaignObj.id);
+        campaignObj.isStopped = isStopped;
+
+        if (campaignObj.isClosed) closedLoadedCampaigns.push(campaignObj);
+        else loadedCampaigns.push(campaignObj);
+      }
+      
+      setCampaigns(loadedCampaigns);
+      setClosedCampaigns(closedLoadedCampaigns);
+    } catch (error) {
+      console.error("Error loading campaigns from contract:", error);
+      setInitError(error);
+    }
   }
 
   useEffect(() => {
@@ -128,59 +180,10 @@ function App() {
   }, [])
 
   useEffect(() => {
-    async function getCampaignsCount(){
-      let totalCampaigns = await crowdfundContract.campaignCount();
-      let totalClosedCampaigns = await crowdfundContract.closedCampaigns();
-      let totalActiveCampaigns = totalCampaigns - totalClosedCampaigns;
-
-      totalCampaigns = totalCampaigns.toString();
-      totalActiveCampaigns = totalActiveCampaigns.toString();
-      totalClosedCampaigns = totalClosedCampaigns.toString();
-
-      return { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns };
-    }
-
-    async function loadCampaigns(){
-      try {
-        const { totalCampaigns, totalActiveCampaigns, totalClosedCampaigns } = await getCampaignsCount();
-        setTotalCampaigns(totalActiveCampaigns);
-        setTotalClosedCampaigns(totalClosedCampaigns);
-
-        // TODO: use Promise.all here to load faster
-        const loadedCampaigns = [];
-        const closedLoadedCampaigns = [];
-
-        for (let i=0;i<totalCampaigns;i++){
-          const campaign = await crowdfundContract.campaigns(i);
-
-          const campaignObj = {
-            id: campaign[0],
-            creator: campaign[1],
-            metadataUrl: campaign[2],
-            goal: campaign[3],
-            deadline: campaign[4],
-            fundsRaised: campaign[5],
-            totalContributors: campaign[6],
-            isClosed: campaign[7],
-          }
-
-          const isStopped = await crowdfundContract.isStopped(campaignObj.id);
-          campaignObj.isStopped = isStopped;
-
-          if (campaignObj.isClosed) closedLoadedCampaigns.push(campaignObj);
-          else loadedCampaigns.push(campaignObj);
-        }
-        
-        setCampaigns(loadedCampaigns);
-        setClosedCampaigns(closedLoadedCampaigns);
-      } catch (error) {
-        console.error("Error loading campaigns from contract:", error);
-        setInitError(error);
-      }
-    }
-
     if (crowdfundContract) {
       loadCampaigns();
+
+      crowdfundContract.inSafeMode().then(val => setInSafeMode(val));
 
       crowdfundContract.on("CampaignCreated", async (campaignId, creator) => {
         console.log("Campaign created event:", {campaignId, creator});
@@ -398,6 +401,7 @@ function App() {
         setCurrentTab={setCurrentTab}
         disableNav={disableNav}
       />
+      {inSafeMode && <ErrorMessage message={"Contract is in safemode (Readonly)"} />}
       { !walletDetected && <NoWalletDetected /> }
       { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
       { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
@@ -410,6 +414,8 @@ function App() {
           blockExplorerUrl={blockExplorerUrl}
           setDisableNav={setDisableNav}
           reloadContractPanelVar={reloadContractPanelVar}
+          inSafeMode={inSafeMode}
+          setInSafeMode={setInSafeMode}
         />
       }
       {currentTab === "newCampaign" &&
@@ -419,6 +425,7 @@ function App() {
           signer={signer}
           setSigner={setSigner}
           setDisableNav={setDisableNav}
+          inSafeMode={inSafeMode}
         />
       }
       {currentTab === "campaigns" &&
@@ -437,6 +444,7 @@ function App() {
               setDisableNav={setDisableNav}
               setShowCampaignInfo={setShowCampaignInfo}
               faucetUrl={ALCHEMY_FAUCET_URL}
+              inSafeMode={inSafeMode}
             />
           }
           <section>

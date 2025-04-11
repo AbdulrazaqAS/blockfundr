@@ -1,16 +1,12 @@
 export default function ErrorMessage({ message, setErrorMessage }) {
   return (
-    <div className="error-bar" role="alert">
+    <div className="error-bar">
       {message}
-      <button
-        type="button"
-        className="close"
-        data-dismiss="alert"
-        aria-label="Close"
-        onClick={() => setErrorMessage(null)}
-      >
-        <span aria-hidden="true">&times;</span>
-      </button>
+      {setErrorMessage &&
+        <button onClick={() => setErrorMessage(null)}>
+          <span>&times;</span>
+        </button>
+      }
     </div>
   );
 }

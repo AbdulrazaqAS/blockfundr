@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 
-export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar }){
+export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
     const [isDeployer, setIsDeployer] = useState(false);
     const [amount, setAmount] = useState(0);
     const [isWithdraw, setIsWithdraw] = useState(true);
@@ -11,6 +11,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     const [contractBalance, setContractBalance] = useState(0);
     const [isSending, setIsSending] = useState(false);
     const [fundsHistory, setFundsHistory] = useState([]);
+    const [isSwitchingSafeMode, setIsSwitchingSafeMode] = useState(false);
 
     async function withdraw(amount){
         try {
@@ -121,6 +122,23 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
         }
     }
 
+    async function switchSafeMode() {
+        try {
+            setIsSwitchingSafeMode(true);
+            setDisableNav(true);
+            const tx = await crowdfundContract.connect(signer).setSafeMode(!inSafeMode);
+            await tx.wait();
+            setInSafeMode(!inSafeMode);
+
+            console.log("Succesfully switched safe mode.");
+        } catch (error) {
+            console.error("Error switching safe mode:", error);
+        } finally {
+            setIsSwitchingSafeMode(false);
+            setDisableNav(false);
+        }
+    }
+
     useEffect(() => {
         if (!provider || !contractAddress || !crowdfundContract) return;
 
@@ -165,12 +183,24 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
 
     return (
         <div className="contract-panel">
+            <h2>Contract State</h2>
+            <section className="contract-state-container">
+                <fieldset className="contract-state-option">
+                <legend>Safe Mode</legend>
+                    <p>{inSafeMode ? "Active": "Inactive"}</p>
+                    {isDeployer &&
+                        <button className="contract-panel-btn" onClick={switchSafeMode} disabled={isSwitchingSafeMode || isSending }>
+                            {isSwitchingSafeMode ? "Switching..." : inSafeMode ? "Deactivate" : "Activate"}
+                        </button>
+                    }
+                </fieldset>
+            </section>
             {isDeployer && <form onSubmit={(e) => {
                 e.preventDefault();
                 isWithdraw ? withdraw(amount) : transfer(amount, receiverAddr);
             }}>
                 <h2>Deployer Panel</h2>
-                <fieldset>
+                <fieldset id="deployer-panel">
                     <legend>Select action type:</legend>
                     <label><input type="radio" name="action-type" value="withdraw" checked={isWithdraw} onChange={() => setIsWithdraw(true)} />Withdraw</label>
                     <label><input type="radio" name="action-type" value="transfer" checked={!isWithdraw} onChange={() => setIsWithdraw(false)} />Transfer</label>
@@ -199,8 +229,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     }
                 </div>
                 <button
-                    disabled={!signer || isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 20)}
+                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 20)}
                     type="submit"
+                    id="contract-panel-send-btn"
                     className="contract-panel-btn"
                 >
                     {isSending ? "Sending..." : isWithdraw ? "Withdraw" : "Transfer"}

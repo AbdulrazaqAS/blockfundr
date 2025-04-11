@@ -23,7 +23,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl, inSafeMode }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -351,21 +351,21 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       <div className="campaignInfoCard-middle">
         {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
         <div className="camapignInfo-buttons" style={{display: "inline"}}>
-          <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping} onClick={() => sendFunds(fundAmount)}>
+          <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping || inSafeMode} onClick={() => sendFunds(fundAmount)}>
             {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Closed" : "Send Funds"}  {/* Priority left to right */}
           </button>
           {isOwner && !isClosed && (
-            <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={withdraw}>
+            <button disabled={isSending || isWithdrawing || isStopping || inSafeMode} onClick={withdraw}>
               {isWithdrawing ? "Withdrawing..." : isClosed ? "Closed" : "Withdraw"}
             </button>
           )}
           {(isOwner || isDeployer) && !isClosed && (
-            <button disabled={isSending || isClosed || isWithdrawing || isStopping} onClick={stopCampaign}>
+            <button disabled={isSending || isWithdrawing || isStopping || inSafeMode} onClick={stopCampaign}>
               {isStopping ? "Stopping..." : "Stop"}
             </button>
           )}
           {isStopped && signer && !isOwner && (  // onwer can't take refund. Account must be connected to take refund
-            <button disabled={isRefunding} onClick={requestRefund}>
+            <button disabled={isRefunding || inSafeMode} onClick={requestRefund}>
               {isRefunding ? "Sending..." : "Request refund"} {/* TODO: show refund amount */}
             </button>
           )}

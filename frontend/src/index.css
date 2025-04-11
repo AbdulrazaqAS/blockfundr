@@ -37,6 +37,7 @@ body {
   padding: 10px;
   border: solid 2px rgb(144, 98, 170);
   cursor: pointer;
+  transition: all 0.3s ease-in-out 0s;
 }
 
 .navbar-nav:hover {
@@ -95,7 +96,8 @@ body {
   height: fit-content;
   background-color: rgb(247, 76, 76);
   padding: 5px 10px;
-  overflow: hidden;
+  text-align: center;
+  overflow: auto;
 }
 
 .red-p {
@@ -116,6 +118,7 @@ button {
 
 button:hover {
   background-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1.05, 1.05);
 }
 
 button:disabled {
@@ -145,6 +148,12 @@ button:disabled {
   background-color: white;
   border-radius: 10px;
   cursor: pointer;
+  transition: all 0.15s ease-in 0s;
+}
+
+.card:hover {
+  box-shadow: rgb(46, 19, 61) 5px 5px 15px;
+  transform: scale(1.01, 1.01);
 }
 
 .card a, .card img{
@@ -208,18 +217,6 @@ button:disabled {
   background-color: rgb(62, 33, 79);
 }
 
-/* Who is this? */
-/* .card-btn {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  background-color: rgba(62, 33, 79, 1);
-  border-radius: 50%;
-  text-align: center;
-  text-decoration: none;
-  font-size: xx-large;
-} */
-
 #card-info {
   padding: 5% 2%;
   display: flex;
@@ -242,16 +239,13 @@ progress {
 }
 
 #newCampaignContainer button {
-  background-color: rgba(62, 33, 79, 1);
+  background-color: rgba(62, 33, 79);
   color: white;
   margin: 0px auto;
 }
 
 #newCampaignContainer button:hover {
-  background-color: rgba(62, 33, 79, 1);
-  color: white;
-  width: 45%;
-  margin: 0px auto;
+  background-color: rgb(20, 5, 29);
 }
 
 #newCampaignContainer form {
@@ -275,6 +269,7 @@ progress {
   border-radius: 10px;
   padding: 10px 15px;
   margin: 5px 0px;
+  border: solid 2px rgb(62, 33, 79);
 }
 
 .campaignInfoCard, .contract-panel {
@@ -310,14 +305,13 @@ progress {
 .campaignInfoCard-middle button {
   background-color: rgba(62, 33, 79, 1);
   color: white;
-  width: 20%;
   min-width: fit-content;
+  width: 15%;
   margin-left: 10px;
 }
 
 .campaignInfoCard-middle button:hover {
   background-color: rgb(94, 37, 128);
-  width: 23%;
 }
 
 .campaignInfoCard-middle input {
@@ -337,8 +331,12 @@ progress {
 }
 
 .contract-panel fieldset {
-  background-color: rgb(237, 205, 255);
+  background-color: #edcdff;
   border-radius: 10px;
+  border: solid 2px rgb(62, 33, 79);
+}
+
+#deployer-panel {
   padding: 10px 15px;
   margin: 5px 0px 7px;
 }
@@ -355,14 +353,38 @@ progress {
 .contract-panel-btn {
   background-color: rgba(62, 33, 79, 1);
   color: white;
-  width: 20%;
+}
+
+#contract-panel-send-btn {
   margin: 0px auto 20px;
 }
 
 .contract-panel-btn:hover {
   background-color: rgba(62, 33, 79, 0.8);
-  width: 23%;
 }
+
+.contract-state-container {
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.contract-state-option {
+  display: flex;
+  justify-content: space-between;
+  width: 40%;
+  min-width: 270px;
+  padding: 5px 10px;
+  align-items: center;
+}
+
+.contract-state-option p{
+  font-size: x-large;
+}
+
+.contract-state-option button:hover {
+  background-color: red;
+}
+
 .close-event-details-container {
   margin-top: 15px;
 }

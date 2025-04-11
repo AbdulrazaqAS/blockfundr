@@ -14,7 +14,7 @@ function calculateDuration(date){
     return dateInSeconds - currentTime;
 }
 
-export default function CreateCampaign({ crowdfundContract, provider, signer, setSigner, setDisableNav }) {
+export default function CreateCampaign({ crowdfundContract, provider, signer, setSigner, setDisableNav, inSafeMode }) {
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -245,6 +245,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
           </p>
         )}
         <button type="submit" disabled={
+            inSafeMode ||
             loadingNewCampaign || 
             error || 
             (minGoal && goal < formatEther(minGoal)) || 
