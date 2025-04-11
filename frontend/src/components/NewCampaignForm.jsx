@@ -29,14 +29,17 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [userCampaigns, setUserCampaigns] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
   const [loadingNewCampaign, setLoadingNewCampaign] = useState(false);
+  const [noNewCampaignsMode, setNoNewCampaignsMode] = useState(false);
 
   useEffect(() => {
     try {
       const minDuration = crowdfundContract.MIN_DURATION();
       const minGoal = crowdfundContract.MIN_GOAL();
-      Promise.all([minDuration, minGoal]).then((arr)=>{
+      const noNewCampaignsMode = crowdfundContract.noNewCampaigns();
+      Promise.all([minDuration, minGoal, noNewCampaignsMode]).then((arr)=>{
         setMinDuration(arr[0]);
         setMinGoal(arr[1]);
+        setNoNewCampaignsMode(arr[2]);
 
         // bigint => number won't lose precision here. Added one day to account for passed hrs of the current day.
         const minSeconds = (Date.now() / 1000) + Number(arr[0]) + (24 * 60 * 60);
@@ -45,7 +48,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         setGoal(formatEther(arr[1]));
       });
     } catch (error) {
-      console.error("Error reading min values from contract:", error);
+      console.error("Error reading values from contract:", error);
       setError(error);
     }
   }, []);
@@ -207,6 +210,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       <form onSubmit={handleSubmit}>
         <h2>Create a New Campaign</h2>
         {signer && !isDeployer && <p style={{textAlign:"center"}}>Non-contract deployer can only have {maxUserCampaigns} active campaigns. You have {userCampaigns} active campaigns.</p>}
+        {noNewCampaignsMode && <ErrorMessage message={"Contract creation is currently disabled. Try again later."} />}
         {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
@@ -245,6 +249,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
           </p>
         )}
         <button type="submit" disabled={
+            noNewCampaignsMode ||
             inSafeMode ||
             loadingNewCampaign || 
             error || 

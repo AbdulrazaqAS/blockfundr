@@ -12,6 +12,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     const [isSending, setIsSending] = useState(false);
     const [fundsHistory, setFundsHistory] = useState([]);
     const [isSwitchingSafeMode, setIsSwitchingSafeMode] = useState(false);
+    const [isSwitchingCampaignsMode, setIsSwitchingCampaignsMode] = useState(false);
+    const [noNewCampaignsMode, setNoNewCampaignsMode] = useState(false);
+
 
     async function withdraw(amount){
         try {
@@ -138,6 +141,23 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             setDisableNav(false);
         }
     }
+        
+    async function switchNoNewCampaignsMode() {
+        try {
+            setIsSwitchingCampaignsMode(true);
+            setDisableNav(true);
+            const tx = await crowdfundContract.connect(signer).setNoNewCampaigns(!noNewCampaignsMode);
+            await tx.wait();
+            setNoNewCampaignsMode(!noNewCampaignsMode);
+
+            console.log("Succesfully switched campaigns creation mode.");
+        } catch (error) {
+            console.error("Error switching campaigns creation mode:", error);
+        } finally {
+            setIsSwitchingCampaignsMode(false);
+            setDisableNav(false);
+        }
+    }
 
     useEffect(() => {
         if (!provider || !contractAddress || !crowdfundContract) return;
@@ -176,7 +196,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
         const checkDeployer = async () => {
             const signerAddr = await signer.address;
             const contractOwner = await crowdfundContract.owner();
+            const noNewCampaignsMode = await crowdfundContract.noNewCampaigns();
             setIsDeployer(signerAddr === contractOwner);
+            setNoNewCampaignsMode(noNewCampaignsMode);
         };
         checkDeployer();
     }, [crowdfundContract, signer]);
@@ -186,11 +208,20 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             <h2>Contract State</h2>
             <section className="contract-state-container">
                 <fieldset className="contract-state-option">
-                <legend>Safe Mode</legend>
+                    <legend>Safe Mode</legend>
                     <p>{inSafeMode ? "Active": "Inactive"}</p>
                     {isDeployer &&
-                        <button className="contract-panel-btn" onClick={switchSafeMode} disabled={isSwitchingSafeMode || isSending }>
+                        <button className="contract-panel-btn" onClick={switchSafeMode} disabled={isSwitchingSafeMode || isSending || isSwitchingCampaignsMode}>
                             {isSwitchingSafeMode ? "Switching..." : inSafeMode ? "Deactivate" : "Activate"}
+                        </button>
+                    }
+                </fieldset>
+                <fieldset className="contract-state-option">
+                    <legend>No New Campaigns Mode</legend>
+                    <p>{noNewCampaignsMode ? "Active": "Inactive"}</p>
+                    {isDeployer &&
+                        <button className="contract-panel-btn" onClick={switchNoNewCampaignsMode} disabled={isSwitchingSafeMode || isSending || inSafeMode || isSwitchingCampaignsMode}>
+                            {isSwitchingCampaignsMode ? "Switching..." : noNewCampaignsMode ? "Deactivate" : "Activate"}
                         </button>
                     }
                 </fieldset>
@@ -199,7 +230,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                 e.preventDefault();
                 isWithdraw ? withdraw(amount) : transfer(amount, receiverAddr);
             }}>
-                <h2>Deployer Panel</h2>
+                <h2>Contract Funds</h2>
                 <fieldset id="deployer-panel">
                     <legend>Select action type:</legend>
                     <label><input type="radio" name="action-type" value="withdraw" checked={isWithdraw} onChange={() => setIsWithdraw(true)} />Withdraw</label>
@@ -229,7 +260,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     }
                 </div>
                 <button
-                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 20)}
+                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 20) || inSafeMode }
                     type="submit"
                     id="contract-panel-send-btn"
                     className="contract-panel-btn"
