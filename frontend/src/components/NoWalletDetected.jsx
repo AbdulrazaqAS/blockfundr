@@ -15,7 +15,7 @@ export default function NoWalletDetected() {
         <a href="http://metamask.io" target="_blank" rel="noopener noreferrer">
             MetaMask
         </a>
-        .
+        . Reload page if installed.
         </p>
     </div>
   );

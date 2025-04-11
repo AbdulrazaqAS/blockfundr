@@ -65,13 +65,11 @@ function App() {
       isStopped: false,  // new campaigns are not stopped
     }
 
-    // Maybe in hardhat localhost, since blocks are not getting created until when a tx
-    // happens, modifying this file leads to rerunning this func even though a new CampaignCreated
-    // event is not fired. Maybe it is bcoz modifying the file leads to requerying the local provider
-    // and since a new block is not added, the old one (if it has the event) will make this func fire.
-    // THis 'if' block is taking care of that. THIS IS JUST AN EMPIRICALLY. Does it apply to main/test nets.
     setTotalCampaigns(totalCampaigns.toString());
     setCampaigns((prev)=>{
+      // Sometimes creation of a new campaign fires multiple CampaignCreated event (IDK why). So this
+      // if-block is making sure to only create a new card if number of previous cards is less than number
+      // of total campaigns. This way, only one of the multiple events will successfully create a card.
       if (prev.length < totalCampaigns.toString())
         return [...prev, campaignObj]
       else
@@ -233,11 +231,17 @@ function App() {
         setTotalClosedCampaigns(totalClosedCampaigns);
 
         setClosedCampaigns((prev) => {
-          return [...prev, withdrawnCampaignObj];
+          // Sometimes closing a campaign by withrawing fires multiple Withdrawn event (IDK why). So this
+          // if-block is making sure to only create a closed new card if number of previous cards is less than number
+          // of total total closed campaigns. This way, only one of the multiple events will successfully create a closed card.
+          if (prev.length < totalClosedCampaigns)
+            return [...prev, withdrawnCampaignObj];
+          else
+            return prev
         });
         
         setCampaigns((prev) => {
-          return prev.filter((el) => el.id !== campaignId);
+          return prev.filter((el) => el.id !== campaignId);  // remove the closed card from active cards
         })
         setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
       });
@@ -265,7 +269,13 @@ function App() {
         setTotalClosedCampaigns(totalClosedCampaigns);
 
         setClosedCampaigns((prev) => {
-          return [...prev, stoppedCampaignObj];
+          // Sometimes closing a campaign by stopping fires multiple Stopped event (IDK why). So this
+          // if-block is making sure to only create a closed new card if number of previous cards is less than number
+          // of total total closed campaigns. This way, only one of the multiple events will successfully create a closed card.
+          if (prev.length < totalClosedCampaigns)
+            return [...prev, stoppedCampaignObj];
+          else
+            return prev
         });
         
         setCampaigns((prev) => {
@@ -320,6 +330,7 @@ function App() {
 
       console.log("Event listeners added");
 
+      // Shouldn't this block clear the listeners so that they don't accumulate?
       return () => {
         crowdfundContract.off("CampaignCreated");
         crowdfundContract.off("Funded");

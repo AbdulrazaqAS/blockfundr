@@ -5,6 +5,7 @@ import { faLink } from '@fortawesome/free-solid-svg-icons';
 
 export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
     const [isDeployer, setIsDeployer] = useState(false);
+    const [deployerAddr, setDeployerAddr] = useState("");
     const [amount, setAmount] = useState(0);
     const [isWithdraw, setIsWithdraw] = useState(true);
     const [receiverAddr, setReceiverAddr] = useState("");
@@ -197,6 +198,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             const signerAddr = await signer.address;
             const contractOwner = await crowdfundContract.owner();
             const noNewCampaignsMode = await crowdfundContract.noNewCampaigns();
+            setDeployerAddr(contractOwner);
             setIsDeployer(signerAddr === contractOwner);
             setNoNewCampaignsMode(noNewCampaignsMode);
         };
@@ -256,11 +258,12 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                                 value={receiverAddr}
                                 onChange={(e) => setReceiverAddr(e.target.value)}
                             />
+                            {receiverAddr === deployerAddr && <p className="red-p">Receiver address same as deployer address, use "Withdraw" instead</p>}
                         </div>
                     }
                 </div>
                 <button
-                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 20) || inSafeMode }
+                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || receiverAddr.length < 40 || receiverAddr === deployerAddr || inSafeMode }
                     type="submit"
                     id="contract-panel-send-btn"
                     className="contract-panel-btn"
