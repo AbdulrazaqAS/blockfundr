@@ -411,6 +411,46 @@ progress {
   padding: 10px;
   text-align: left;
 }
+
 .funding-table th {
   background-color: #f2f2f2;
+}
+
+footer {
+  width: 100%;
+  background-color: rgb(62, 33, 79);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  padding: 0px 25px 10px;
+  min-height: fit-content;
+  height: 230px;
+  margin-top: 50px;
+}
+
+footer img {
+  width: 30%;
+}
+
+footer a {
+  color: white;
+}
+
+footer a:link {
+  text-decoration: none;
+}
+
+footer li {
+  list-style: none;
+  display: inline-block;
+  margin: 0px 20px;
+  text-align: center;
+}
+
+
+footer li p {
+  text-decoration: none;
+  margin-top: 7px;
 }

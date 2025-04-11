@@ -12,6 +12,7 @@ import CampaignInfoCard from './components/CampaignInfoCard';
 import NoWalletDetected from './components/NoWalletDetected';
 import ErrorMessage from './components/ErrorMessage.jsx';
 import ContractPanel from './components/ContractPanel.jsx';
+import Footer from './components/footer.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
 const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
@@ -500,6 +501,7 @@ function App() {
           </section>
         </div>
       }
+      <Footer faucetUrl={ALCHEMY_FAUCET_URL}/>
     </div>
   )
 }
