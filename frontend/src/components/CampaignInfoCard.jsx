@@ -349,7 +349,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
 
   return (
     <div className="campaignInfoCard">
-      {error && <ErrorMessage message={error.message} setErrorMessage={setError}/>}
+      {error && <ErrorMessage message={error?.message || "No message in error"} setErrorMessage={setError}/>}
       <CancelBtn onClick={() => setShowCampaignInfo(null)} disabled={isRefunding || isSending || isStopping || isWithdrawing}/>
       <h1>{title}  #{id}</h1>
       <div className="campaignInfoCard-top">

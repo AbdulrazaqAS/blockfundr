@@ -24,7 +24,7 @@ function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletErr
 			setSigner(newSigner);
 			//changeToNetwork(networkId); // Seems not working
 		} catch (error) {
-			setWalletError(error);
+			setWalletError(error.message);
 			if (error.code === 4001) {
 				console.log("User rejected request");
 			} else if (error.code === -32002) {
@@ -54,7 +54,7 @@ function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletErr
 				params: [{chainId: networkIdHex}]
 			});
 		} catch (error) {
-			setWalletError(error);
+			setWalletError(error.message);
 			if (error.code === 4902) {
 				console.error("Network not found, please add it to your wallet");
 			} else if (error.code === 4001) {

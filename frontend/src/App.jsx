@@ -128,7 +128,7 @@ function App() {
       setClosedCampaigns(closedLoadedCampaigns);
     } catch (error) {
       console.error("Error loading campaigns from contract:", error);
-      setInitError(error);
+      setInitError(error.message);
     }
   }
 
@@ -157,7 +157,7 @@ function App() {
           }
         } catch (error) {
           console.error("Error getting contract:", error);
-          setInitError(error);
+          setInitError(error.message);
           const reload = setInterval(() => {
             console.log("Retrying to connect to contract...");
             const code = provider.getCode(CONTRACT_ADDRESS);
@@ -168,7 +168,7 @@ function App() {
                 setInitError(null);
                 clearInterval(reload);
               } else {
-                setInitError(error);
+                setInitError(error.message);
               }
             });
           }, 10000);
@@ -176,7 +176,7 @@ function App() {
       }); 
     } catch (error) {
       console.error("Error connecting to provider:", error);
-      setInitError(error);
+      setInitError(error.message);
     }
   }, [])
 
@@ -464,8 +464,8 @@ function App() {
       />
       {inSafeMode && <ErrorMessage message={"Contract is in safemode (Readonly)"} />}
       { !walletDetected && <NoWalletDetected setWalletDetected={setWalletDetected} /> }
-      { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
-      { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
+      { walletError && <ErrorMessage message={walletError} setErrorMessage={setWalletError}/> }
+      { initError && <ErrorMessage message={initError} setErrorMessage={setInitError}/> }
       {currentTab === "contractPanel" &&
         <ContractPanel
           crowdfundContract={crowdfundContract}

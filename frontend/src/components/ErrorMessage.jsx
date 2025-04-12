@@ -3,7 +3,7 @@ export default function ErrorMessage({ message, setErrorMessage }) {
     <div className="error-bar">
       {message}
       {setErrorMessage &&
-        <button onClick={() => setErrorMessage(null)}>
+        <button onClick={() => setErrorMessage("")}>
           <span>&times;</span>
         </button>
       }
