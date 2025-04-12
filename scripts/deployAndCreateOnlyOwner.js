@@ -38,7 +38,7 @@ async function main() {
     await tx.wait();
   }
 
-  for (let i=0; i< 3; i++){
+  for (let i=0; i< 5; i++){
     const metadataUrl = campaingsJson[i].ipfsUrl;
     let goal = ethers.parseEther(campaingsJson[i].goal.toString());
     let duration = parseInt(campaingsJson[i].duration) * 24 * 60 * 60
@@ -49,7 +49,7 @@ async function main() {
 
     const campaignId = await createCampaign(deployer, metadataUrl, goal, duration);
     
-    const fundings = 0;
+    const fundings = 2;
     for (let j=0;j<fundings;j++) {
       let amount = Math.random() * 0.01 + 0.001;
       amount = amount.toFixed(5);

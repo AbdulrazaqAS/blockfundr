@@ -1,14 +1,5 @@
 [
   {
-    "title": "AI-Powered Learning Platform for Kids",
-    "goal": 2.5,
-    "duration": 30,
-    "description": "An AI-based education platform to help children learn interactively.",
-    "long_description": "This project focuses on building an AI-powered learning app tailored for children aged 6-12, making education fun and engaging through interactive games, quizzes, and adaptive learning.",
-    "location": "Abuja, Nigeria",
-    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmWQKLNZUaLnnfdVsejKiZDfzz5fNcvXBs9SoPc2i4iRLH"
-  },
-  {
     "title": "Solar-Powered Water Pumps for Rural Farmers",
     "goal": 5,
     "duration": 90,
@@ -18,40 +9,13 @@
     "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmUvpeZ6dn3ESJ94Dct9bH5tBDjVq5i38f5feV9tQ8oJVw"
   },
   {
-    "title": "Affordable Housing for Low-Income Families",
-    "goal": 10,
-    "duration": 150,
-    "description": "Building affordable homes for families in need.",
-    "long_description": "This initiative focuses on constructing low-cost, sustainable housing for low-income families, providing them with safe and secure living conditions.",
-    "location": "Nigeria",
-    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmR4bRqkSLT4joHk9qdjxFDPTyFkQBv1V81PbVLCGB4Dys"
-  },
-  {
-    "title": "Eco-Friendly Packaging Startup",
-    "goal": 7.5,
-    "duration": 45,
-    "description": "Developing biodegradable packaging to reduce plastic waste.",
-    "long_description": "Plastic pollution is a growing environmental crisis. Our startup aims to create sustainable, compostable, and biodegradable packaging solutions for businesses to help reduce waste and protect the planet.",
+    "title": "AI-Powered Learning Platform for Kids",
+    "goal": 2.5,
+    "duration": 30,
+    "description": "An AI-based education platform to help children learn interactively.",
+    "long_description": "This project focuses on building an AI-powered learning app tailored for children aged 6-12, making education fun and engaging through interactive games, quizzes, and adaptive learning.",
     "location": "Abuja, Nigeria",
-    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZxVDpMpRnrs89wCdhXFEN3XFTK1TMiaCqLSAwr1U5euJ"
-  },
-  {
-    "title": "3D-Printed Prosthetics for Amputees",
-    "goal": 10,
-    "duration": 75,
-    "description": "Affordable, custom 3D-printed prosthetics for people in need.",
-    "long_description": "Millions of people worldwide lack access to affordable prosthetic limbs. We use 3D printing technology to produce high-quality, low-cost prosthetics that restore mobility and independence.",
-    "location": "Nairobi, Kenya",
-    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmawStYYfSHkmAQFjydaW5RJRE82aJAtrNvj2fNj4pHASR"
-  },
-  {
-    "title": "Blockchain-Based Land Ownership Registry",
-    "goal": 2.55,
-    "duration": 50,
-    "description": "A secure blockchain platform for verifying land ownership.",
-    "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
-    "location": "Lagos, Nigeria",
-    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZ5qAEiPdq5wfR1KuTs7wud5pV5xfYjCkKC6oasGh1gsQ"
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmWQKLNZUaLnnfdVsejKiZDfzz5fNcvXBs9SoPc2i4iRLH"
   },
   {
     "title": "Reforestation Project for Climate Action",
@@ -72,6 +36,33 @@
     "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmYNdUfXYaJdGQzbWuDEWC8jC4fcS9jvz8ReDMmUMBrZWp"
   },
   {
+    "title": "3D-Printed Prosthetics for Amputees",
+    "goal": 10,
+    "duration": 75,
+    "description": "Affordable, custom 3D-printed prosthetics for people in need.",
+    "long_description": "Millions of people worldwide lack access to affordable prosthetic limbs. We use 3D printing technology to produce high-quality, low-cost prosthetics that restore mobility and independence.",
+    "location": "Nairobi, Kenya",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmawStYYfSHkmAQFjydaW5RJRE82aJAtrNvj2fNj4pHASR"
+  },
+  {
+    "title": "Eco-Friendly Packaging Startup",
+    "goal": 7.5,
+    "duration": 45,
+    "description": "Developing biodegradable packaging to reduce plastic waste.",
+    "long_description": "Plastic pollution is a growing environmental crisis. Our startup aims to create sustainable, compostable, and biodegradable packaging solutions for businesses to help reduce waste and protect the planet.",
+    "location": "Abuja, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZxVDpMpRnrs89wCdhXFEN3XFTK1TMiaCqLSAwr1U5euJ"
+  },
+  {
+    "title": "Blockchain-Based Land Ownership Registry",
+    "goal": 2.55,
+    "duration": 50,
+    "description": "A secure blockchain platform for verifying land ownership.",
+    "long_description": "Land disputes are common due to poor record-keeping and corruption. Our platform leverages blockchain technology to create a transparent and immutable land registry system.",
+    "location": "Lagos, Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmZ5qAEiPdq5wfR1KuTs7wud5pV5xfYjCkKC6oasGh1gsQ"
+  },
+  {
     "title": "Space-Themed STEM Learning Kits for Schools",
     "goal": 5.5,
     "duration": 70,
@@ -88,5 +79,14 @@
     "long_description": "Many remote areas lack access to basic healthcare. Our mobile health clinics travel to these regions, providing free medical checkups, vaccinations, and essential medicines.",
     "location": "Yobe, Nigeria",
     "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmVdtKAi1syQPq7Jti6CpQo5KZSQNMfZHq7ETunANdD8Tf"
+  },
+  {
+    "title": "Affordable Housing for Low-Income Families",
+    "goal": 10,
+    "duration": 150,
+    "description": "Building affordable homes for families in need.",
+    "long_description": "This initiative focuses on constructing low-cost, sustainable housing for low-income families, providing them with safe and secure living conditions.",
+    "location": "Nigeria",
+    "ipfsUrl": "https://gateway.pinata.cloud/ipfs/QmR4bRqkSLT4joHk9qdjxFDPTyFkQBv1V81PbVLCGB4Dys"
   }
 ]

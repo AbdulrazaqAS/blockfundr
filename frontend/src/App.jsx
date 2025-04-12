@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { ethers } from "ethers";
 
 import crowdfundArtifact from "./contracts/Crowdfund.json";
-import contractAddress from "./contracts/contract-address.json";
 
 import NavBar from './components/NavBar.jsx'
 import Card from './components/Card.jsx'
@@ -14,9 +13,11 @@ import ContractPanel from './components/ContractPanel.jsx';
 import Footer from './components/footer.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
-const CONTRACT_ADDRESS = '0x9527cF827161F94a211fB1E09Ddcc52ADCAB06F7';
+const CONTRACT_ADDRESS = '0xE8C2e71f6f890aA8ed568200B46dE613dBd29CF8';
 const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 const ALCHEMY_FAUCET_URL = "https://www.alchemy.com/faucets/ethereum-sepolia";
+const INFURA_ENDPOINT_PREFIX = "https://sepolia.infura.io/v3/";
+const ALCHEMY_ENDPOINT_PREFIX = "https://eth-sepolia.g.alchemy.com/v2/";
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
@@ -130,52 +131,100 @@ function App() {
 
   useEffect(() => {
     if (window.ethereum === undefined) setWalletDetected(false);
-    else {
-      try {
-        setWalletDetected(true);
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        setProvider(provider);
+    else setWalletDetected(true);
 
-        const network = provider.getNetwork();
-        network.then((val) => {
-          console.log("Network", val)
-        });
+    try {
+      const provider = new ethers.JsonRpcProvider(ALCHEMY_ENDPOINT_PREFIX + import.meta.env.VITE_ALCHEMY_API_KEY);
+      setProvider(provider);
 
-        const code = provider.getCode(contractAddress.Crowdfund);
-        // TODO: show loading message while waiting to resolve
-        code.then((val) => {
-          try {
-            if (val !== '0x'){
-              const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
-              setCrowdfundContract(crowdfundContract);
-            } else {
-              throw new Error(`No contract deployed at ${contractAddress.Crowdfund}. Reconnecting...`);
-            }
-          } catch (error) {
-            console.error("Error getting contract:", error);
-            setInitError(error);
-            const reload = setInterval(() => {
-              console.log("Retrying to connect to contract...");
-              const code = provider.getCode(contractAddress.Crowdfund);
-              code.then((val) => {
-                if (val !== '0x'){
-                  const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
-                  setCrowdfundContract(crowdfundContract);
-                  setInitError(null);
-                  clearInterval(reload);
-                } else {
-                  setInitError(error);
-                }
-              });
-            }, 10000);
+      const network = provider.getNetwork();
+      network.then((val) => {
+        console.log("Network", val)
+      });
+
+      const code = provider.getCode(CONTRACT_ADDRESS);
+      // TODO: show loading message while waiting to resolve
+      code.then((val) => {
+        try {
+          if (val !== '0x'){
+            const crowdfundContract = new ethers.Contract(CONTRACT_ADDRESS, crowdfundArtifact.abi, provider);
+            setCrowdfundContract(crowdfundContract);
+          } else {
+            throw new Error(`No contract deployed at ${CONTRACT_ADDRESS}. Reconnecting...`);
           }
-        }); 
-      } catch (error) {
-        console.error("Error connecting to provider:", error);
-        setInitError(error);
-      }
+        } catch (error) {
+          console.error("Error getting contract:", error);
+          setInitError(error);
+          const reload = setInterval(() => {
+            console.log("Retrying to connect to contract...");
+            const code = provider.getCode(CONTRACT_ADDRESS);
+            code.then((val) => {
+              if (val !== '0x'){
+                const crowdfundContract = new ethers.Contract(CONTRACT_ADDRESS, crowdfundArtifact.abi, provider);
+                setCrowdfundContract(crowdfundContract);
+                setInitError(null);
+                clearInterval(reload);
+              } else {
+                setInitError(error);
+              }
+            });
+          }, 10000);
+        }
+      }); 
+    } catch (error) {
+      console.error("Error connecting to provider:", error);
+      setInitError(error);
     }
   }, [])
+
+  // useEffect(() => {
+  //   if (window.ethereum === undefined) setWalletDetected(false);
+  //   else {
+  //     try {
+  //       setWalletDetected(true);
+  //       const provider = new ethers.BrowserProvider(window.ethereum);
+  //       setProvider(provider);
+
+  //       const network = provider.getNetwork();
+  //       network.then((val) => {
+  //         console.log("Network", val)
+  //       });
+
+  //       const code = provider.getCode(contractAddress.Crowdfund);
+  //       // TODO: show loading message while waiting to resolve
+  //       code.then((val) => {
+  //         try {
+  //           if (val !== '0x'){
+  //             const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
+  //             setCrowdfundContract(crowdfundContract);
+  //           } else {
+  //             throw new Error(`No contract deployed at ${contractAddress.Crowdfund}. Reconnecting...`);
+  //           }
+  //         } catch (error) {
+  //           console.error("Error getting contract:", error);
+  //           setInitError(error);
+  //           const reload = setInterval(() => {
+  //             console.log("Retrying to connect to contract...");
+  //             const code = provider.getCode(contractAddress.Crowdfund);
+  //             code.then((val) => {
+  //               if (val !== '0x'){
+  //                 const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
+  //                 setCrowdfundContract(crowdfundContract);
+  //                 setInitError(null);
+  //                 clearInterval(reload);
+  //               } else {
+  //                 setInitError(error);
+  //               }
+  //             });
+  //           }, 10000);
+  //         }
+  //       }); 
+  //     } catch (error) {
+  //       console.error("Error connecting to provider:", error);
+  //       setInitError(error);
+  //     }
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (crowdfundContract) {
@@ -399,7 +448,7 @@ function App() {
         crowdfundContract={crowdfundContract}
         walletDetected={walletDetected}
         address={address}
-        contractAddress={contractAddress.Crowdfund}
+        contractAddress={CONTRACT_ADDRESS}
         provider={provider}
         signer={signer}
         setSigner={setSigner}
