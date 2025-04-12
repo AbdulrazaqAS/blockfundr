@@ -3,7 +3,7 @@ import { formatEther } from "ethers";
 import ConnectBtn from './ConnectBtn.jsx';
 
 const NavBar = forwardRef((props, ref) => {
-  const { crowdfundContract, walletDetected, address, setCurrentTab, contractAddress, provider, signer, setSigner, networkId, setWalletError, disableNav, currentTab } = props;
+  const { crowdfundContract, walletDetected, setWalletDetected, address, setCurrentTab, contractAddress, provider, signer, setSigner, networkId, setWalletError, disableNav, currentTab } = props;
 
   const [totalBalance, setTotalBalance] = useState(0);
   const [contractBalance, setContractBalance] = useState(0);
@@ -45,7 +45,7 @@ const NavBar = forwardRef((props, ref) => {
           <p className="contract-balance">Total Eth<br />{totalBalance.toString().slice(0, 7)}</p>
           <p className="contract-balance">Contract Eth<br />{contractBalance.toString().slice(0, 7)}</p>
         </div>
-        <ConnectBtn walletDetected={walletDetected} setWalletError={setWalletError} networkId={networkId} address={address} provider={provider} signer={signer} setSigner={setSigner}/>
+        <ConnectBtn walletDetected={walletDetected} setWalletDetected={setWalletDetected} setWalletError={setWalletError} networkId={networkId} address={address} provider={provider} signer={signer} setSigner={setSigner}/>
       </div>
       <nav className="navbar navbar-bottom">
         <div

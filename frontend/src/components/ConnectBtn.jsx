@@ -1,16 +1,25 @@
 import { useState } from "react";
 
-function ConnectBtn({walletDetected, address, provider, signer, setSigner, setWalletError, networkId}){
+function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletError, networkId}){
 	const [isConnecting, setIsConnecting] = useState(false);
 
 	async function connectWallet(){
+		setWalletDetected(true);  // remove the error bar if present
+		if (window.ethereum === undefined) {
+		  setWalletDetected(false);
+		  return;
+		}
+		
 		try {
 			setIsConnecting(true);
 			console.log("NetworkID", networkId);
-			const newSigner = await provider.getSigner(0);
+			const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
+			const newSigner = await metamaskProvider.getSigner(0);
 			if (signer && (newSigner.address === signer.address)) {
-				throw new Error("Already connected to this account. Use the wallet to disconnect.");
+				throw new Error("Already connected to this account. Use the wallet to disconnect or change account.");
 			}
+
+			console.log("Connected Signer:", newSigner);
 			setSigner(newSigner);
 			//changeToNetwork(networkId); // Seems not working
 		} catch (error) {
@@ -57,7 +66,7 @@ function ConnectBtn({walletDetected, address, provider, signer, setSigner, setWa
 	}
 
 	return (
-		<button className="connectBtn" onClick={connectWallet} disabled={!walletDetected || isConnecting}>
+		<button className="connectBtn" onClick={connectWallet} disabled={isConnecting}>
 			{address ? (address.toString().slice(0, 7) + "..." + address.toString().slice(37))
 				: isConnecting ? "Connecting..." : ("Connect Wallet")
 			}

@@ -23,7 +23,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, deploymentBlock, logsChunkSize, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl, inSafeMode }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploymentBlock, logsChunkSize, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl, inSafeMode, setWalletDetected }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -58,30 +58,25 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   } = metadata || {}; // Default values in case metadata is null
 
   async function sendFunds(amount){
-    let newSigner = signer;
-    if (!newSigner) {
-        try {
-          newSigner = await provider.getSigner(0);
-          console.log("Connected Signer:", newSigner);
-          setSigner(newSigner);
-        } catch (error) {
-          console.error("Error connecting signer:", error);
-          setSigner(null);
-          setError(error);
-          return;
-        }
+    setWalletDetected(true);  // remove the error bar if present
+    if (window.ethereum === undefined) {
+      setWalletDetected(false);
+      return;
+    }
+
+    if (!signer) {
+      setError(new Error("Please connect an account to proceed."));
+      return;
     }
 
     try {
       setIsSending(true);
       setDisableNav(true);
       const amountInWei = ethers.parseEther(amount);
-      const tx = await crowdfundContract.connect(newSigner).fundCampaign(id, { value: amountInWei });
+      const tx = await crowdfundContract.connect(signer).fundCampaign(id, { value: amountInWei });
       const txReceipt = await tx.wait();
       console.log("Transaction successful:", txReceipt);
       setFundAmount(0);
-      // TODO: Show link to transaction on etherscan
-      // window.open(`https://etherscan.io/tx/${tx.transactionHash}`, "_blank");
     } catch (error) {
       console.error("Error sending funds:", error);
       setError(error);

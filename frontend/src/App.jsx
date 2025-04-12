@@ -13,6 +13,7 @@ import ContractPanel from './components/ContractPanel.jsx';
 import Footer from './components/footer.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
+const SEPOLIA_NETWORK_ID = '11155111';
 const CONTRACT_ADDRESS = '0xE8C2e71f6f890aA8ed568200B46dE613dBd29CF8';
 const DEPLOYMENT_BLOCK = 8103400;
 const LOGS_CHUNK_SIZE = 500; // alchemy free plan chunksize
@@ -413,8 +414,8 @@ function App() {
           setSigner(null);
         } else {
           console.log("Account changed:", accounts[0]);
-          // setAddress(accounts[0]);
-          const newSigner = await provider.getSigner(accounts[0]);
+          const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
+          const newSigner = await metamaskProvider.getSigner(accounts[0]);
           setSigner(newSigner);
         }
       }
@@ -442,26 +443,27 @@ function App() {
     } else {
       console.log("MetaMask is not installed.");
     }
-  }, [provider]);
+  }, [signer]);  // should include walletDetected? Should be no.
 
   return (
     <div>
       <NavBar  ref={campaignInfoRef}
         crowdfundContract={crowdfundContract}
         walletDetected={walletDetected}
+        setWalletDetected={setWalletDetected}
         address={address}
         contractAddress={CONTRACT_ADDRESS}
         provider={provider}
         signer={signer}
         setSigner={setSigner}
-        networkId={HARDHAT_NETWORK_ID}
+        networkId={SEPOLIA_NETWORK_ID}
         setWalletError={setWalletError}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         disableNav={disableNav}
       />
       {inSafeMode && <ErrorMessage message={"Contract is in safemode (Readonly)"} />}
-      { !walletDetected && <NoWalletDetected /> }
+      { !walletDetected && <NoWalletDetected setWalletDetected={setWalletDetected} /> }
       { walletError && <ErrorMessage message={walletError.message} setErrorMessage={setWalletError}/> }
       { initError && <ErrorMessage message={initError.message} setErrorMessage={setInitError}/> }
       {currentTab === "contractPanel" &&
@@ -481,6 +483,7 @@ function App() {
       {currentTab === "newCampaign" &&
         <NewCampaignForm
           crowdfundContract={crowdfundContract}
+          setWalletDetected={setWalletDetected}
           provider={provider}
           signer={signer}
           setSigner={setSigner}
@@ -507,6 +510,7 @@ function App() {
               inSafeMode={inSafeMode}
               deploymentBlock={DEPLOYMENT_BLOCK}
               logsChunkSize={LOGS_CHUNK_SIZE}
+              setWalletDetected={setWalletDetected}
             />
           }
           <section>
