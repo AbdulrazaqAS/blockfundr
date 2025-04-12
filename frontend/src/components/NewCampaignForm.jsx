@@ -14,7 +14,7 @@ function calculateDuration(date){
     return dateInSeconds - currentTime;
 }
 
-export default function CreateCampaign({ crowdfundContract, setWalletDetected, provider, signer, setSigner, setDisableNav, inSafeMode }) {
+export default function CreateCampaign({ crowdfundContract, setWalletDetected, signer, setDisableNav, inSafeMode, blockExplorerUrl }) {
   const [image, setImage] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -22,6 +22,7 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
   const [goal, setGoal] = useState("");
   const [deadline, setDeadline] = useState("");
   const [ipfsUrl, setIpfsUrl] = useState("");
+  const [newCampaignTxHash, setNewCampaignTxHash] = useState("");
   const [error, setError] = useState(null);
   const [minGoal, setMinGoal] = useState();
   const [minDuration, setMinDuration] = useState();
@@ -78,22 +79,8 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
   };
 
   async function newCampaign(metadataUrl, goal, duration){
-    let signer0 = signer;
-    if (!signer){
-      try {
-        signer0 = await provider.getSigner(0);
-        // console.log("Connected Signer:", signer0);
-        setSigner(signer0);
-      } catch (error) {
-        // TODO: Show error message in the form
-        console.error("Error connecting a signer:", error);
-        setSigner(null);
-        return null;
-      }
-    }
-
     try {
-      const txResponse = await crowdfundContract.connect(signer0).createCampaign(metadataUrl, goal, duration);
+      const txResponse = await crowdfundContract.connect(signer).createCampaign(metadataUrl, goal, duration);
       const txReceipt = await txResponse.wait();
       //TODO: Display tx link on etherscan
       return txReceipt;
@@ -158,9 +145,21 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setWalletDetected(true);  // remove the error bar if present
+    if (window.ethereum === undefined) {
+      setWalletDetected(false);
+      return;
+    }
+
+    if (!signer) {
+      setError(new Error("Please connect an account to proceed."));
+      return;
+    }
+
     setLoadingNewCampaign(true);
     setDisableNav(true);  // Disable nav bar while creating campaign
     setIpfsUrl("");  // Clear previous IPFS URL
+    setNewCampaignTxHash("");
     setError(null);  // Clear previous error
 
     const ipfsLink = await uploadToIPFS();
@@ -171,7 +170,6 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
     }
 
     console.log("IPFS Link:", ipfsLink);
-    // TODO: Delete uploaded ifps file if can't create new campaign. Just have a setUrl in the contract then only upload if the tx is successful.
 
     const duration = calculateDuration(deadline);
     const goalInWei = parseEther(goal);
@@ -183,6 +181,7 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
       alert("Failed to create new campaign. Please try again.");
       return;
     }
+    setNewCampaignTxHash(txReceipt.transactionHash);
     console.log("New campaign created successfully:", txReceipt);
 
     if (signer){ // signer maybe null if just connected by clicking the create campaign button due async nature of updating state var.
@@ -250,6 +249,12 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, p
             IPFS Link: <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">{ipfsUrl}</a>
           </p>
         )}
+        {newCampaignTxHash && (
+          <p style={{marginBottom:"10px"}}>
+            Tx Hash: <a href={blockExplorerUrl + newCampaignTxHash} target="_blank" rel="noopener noreferrer">{newCampaignTxHash}</a>
+          </p>
+        )}
+        
         <button type="submit" disabled={
             noNewCampaignsMode ||
             !crowdfundContract ||

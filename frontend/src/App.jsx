@@ -489,6 +489,7 @@ function App() {
           setSigner={setSigner}
           setDisableNav={setDisableNav}
           inSafeMode={inSafeMode}
+          blockExplorerUrl={blockExplorerUrl}
         />
       }
       {currentTab === "campaigns" &&
