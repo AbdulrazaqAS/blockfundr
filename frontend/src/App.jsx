@@ -467,7 +467,6 @@ function App() {
           crowdfundContract={crowdfundContract}
           signer={signer}
           provider={provider}
-          contractAddress={contractAddress}
           blockExplorerUrl={blockExplorerUrl}
           setDisableNav={setDisableNav}
           reloadContractPanelVar={reloadContractPanelVar}

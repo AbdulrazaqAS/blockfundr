@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 import ErrorMessage from "./ErrorMessage";
 
-export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
+export default function ContractPanel({crowdfundContract, signer, provider, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
     const [isDeployer, setIsDeployer] = useState(false);
     const [deployerAddr, setDeployerAddr] = useState("");
     const [amount, setAmount] = useState(0);
