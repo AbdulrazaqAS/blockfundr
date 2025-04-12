@@ -178,23 +178,11 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     }
 
     useEffect(() => {
-        if (!provider || !contractAddress || !crowdfundContract) return;
+        if (!crowdfundContract) return;
 
-        const fetchContractBalance = async () => {
-            try {
-              const contractBalance = await crowdfundContract.contractBalance();
-              setContractBalance(ethers.formatEther(contractBalance));
-            } catch (error) {
-              setContractBalance(0);
-              console.error("Error fetching contract balance:", error);
-            }
-        };
-    
-        fetchContractBalance();
-    
-        const interval = setInterval(fetchContractBalance, 1500);
-        return () => clearInterval(interval);
-      }, [provider, crowdfundContract]);
+        
+        
+      }, [crowdfundContract]);
 
     useEffect(() => {
         if (!crowdfundContract) return;
@@ -206,7 +194,22 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             allEvents.sort((a, b) => b.timestamp - a.timestamp);
             setFundsHistory(allEvents);
         };
+
+        const fetchContractBalance = async () => {
+            try {
+              const contractBalance = await crowdfundContract.contractBalance();
+              setContractBalance(ethers.formatEther(contractBalance));
+            } catch (error) {
+              setContractBalance(0);
+              console.error("Error fetching contract balance:", error);
+            }
+        };
+
+        fetchContractBalance();
         fetchEvents();
+    
+        const interval = setInterval(fetchContractBalance, 1500);  // TODO: Check whether the timer is still required bcoz reloadContractPanelVar as dependency should do the work 
+        return () => clearInterval(interval);
     }, [crowdfundContract, reloadContractPanelVar]);
 
     useEffect(() => {
