@@ -32,6 +32,8 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
   const [noNewCampaignsMode, setNoNewCampaignsMode] = useState(false);
 
   useEffect(() => {
+    if (!crowdfundContract) return;
+
     try {
       const minDuration = crowdfundContract.MIN_DURATION();
       const minGoal = crowdfundContract.MIN_GOAL();
@@ -51,10 +53,10 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       console.error("Error reading values from contract:", error);
       setError(error);
     }
-  }, []);
+  }, [crowdfundContract]);
 
   useEffect(() => {
-    if (!signer) return;
+    if (!signer || !crowdfundContract) return;
 
     try {
       const userCampaigns = crowdfundContract.usersCampaigns(signer.address);
@@ -69,7 +71,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
       console.error("Error reading values from contract:", error);
       setError(error);
     }
-  }, [signer]);
+  }, [signer, crowdfundContract]);
 
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
@@ -147,7 +149,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     } catch (error) {
       setIpfsUrl("");
       console.error("Error uploading to IPFS:", error);
-      alert("Failed to upload to IPFS.");
+      setError(error);
       return null;
     }
   };
@@ -209,7 +211,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
     <div id="newCampaignContainer">
       <form onSubmit={handleSubmit}>
         <h2>Create a New Campaign</h2>
-        {signer && !isDeployer && <p style={{textAlign:"center"}}>Non-contract deployer can only have {maxUserCampaigns} active campaigns. You have {userCampaigns} active campaigns.</p>}
+        {signer && !isDeployer && crowdfundContract && <p style={{textAlign:"center"}}>Non-contract deployer can only have {maxUserCampaigns} active campaigns. You have {userCampaigns} active campaigns.</p>}
         {noNewCampaignsMode && <ErrorMessage message={"Contract creation is currently disabled. Try again later."} />}
         {error && <ErrorMessage message={error.message} />}
         <div className="formFieldBox">
@@ -250,6 +252,7 @@ export default function CreateCampaign({ crowdfundContract, provider, signer, se
         )}
         <button type="submit" disabled={
             noNewCampaignsMode ||
+            !crowdfundContract ||
             inSafeMode ||
             loadingNewCampaign || 
             error || 

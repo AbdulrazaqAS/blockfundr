@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ethers } from "ethers";
 
-// TODO: Handle files not found(same as handling contract not deployed)
 import crowdfundArtifact from "./contracts/Crowdfund.json";
 import contractAddress from "./contracts/contract-address.json";
 
@@ -150,7 +149,7 @@ function App() {
               const crowdfundContract = new ethers.Contract(contractAddress.Crowdfund, crowdfundArtifact.abi, provider);
               setCrowdfundContract(crowdfundContract);
             } else {
-              throw new Error(`No contract deployed at ${contractAddress.Crowdfund}`);
+              throw new Error(`No contract deployed at ${contractAddress.Crowdfund}. Reconnecting...`);
             }
           } catch (error) {
             console.error("Error getting contract:", error);
@@ -329,8 +328,6 @@ function App() {
         setReloadContractPanelVar(prev => prev + 1);
       });
 
-      console.log("Event listeners added");
-
       // Shouldn't this block clear the listeners so that they don't accumulate?
       return () => {
         crowdfundContract.off("CampaignCreated");
@@ -341,7 +338,6 @@ function App() {
         crowdfundContract.off("ContractFundsIncreased");
         crowdfundContract.off("ContractFundsWithdrawn");
         crowdfundContract.off("ContractFundsTransferred");
-        console.log("Event listeners removed");
       };
     }
   }, [crowdfundContract]);

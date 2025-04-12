@@ -350,7 +350,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
       </div>
       <div className="campaignInfoCard-middle">
         {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
-        <div className="camapignInfo-buttons" style={{display: "inline"}}>
+        <div className="camapignInfo-buttons">
           <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping || inSafeMode} onClick={() => sendFunds(fundAmount)}>
             {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Closed" : "Send Funds"}  {/* Priority left to right */}
           </button>

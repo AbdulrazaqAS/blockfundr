@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
+import ErrorMessage from "./ErrorMessage";
 
 export default function ContractPanel({crowdfundContract, signer, provider, contractAddress, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
     const [isDeployer, setIsDeployer] = useState(false);
@@ -15,7 +16,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
     const [isSwitchingSafeMode, setIsSwitchingSafeMode] = useState(false);
     const [isSwitchingCampaignsMode, setIsSwitchingCampaignsMode] = useState(false);
     const [noNewCampaignsMode, setNoNewCampaignsMode] = useState(false);
-
+    const [errorMessage, setErrorMessage] = useState("");
 
     async function withdraw(amount){
         try {
@@ -28,7 +29,11 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
 
             setAmount(0);
         } catch (error) {
-            throw error;
+            console.error("Error withdrawing funds:", error);
+            if (error.code === "ACTION_REJECTED")
+                setErrorMessage("User rejected transaction request");
+            else
+                setErrorMessage(error.message || "Unknown error");
         } finally {
             setIsSending(false);
             setDisableNav(false);
@@ -47,7 +52,11 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             setAmount(0);
             setReceiverAddr("");
         } catch (error) {
-            throw error;
+            console.error("Error transferring funds:", error);
+            if (error.code === "ACTION_REJECTED")
+                setErrorMessage("User rejected transaction request");
+            else
+                setErrorMessage(error.message || "Unknown error");
         } finally {
             setIsSending(false);
             setDisableNav(false);
@@ -137,6 +146,10 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             console.log("Succesfully switched safe mode.");
         } catch (error) {
             console.error("Error switching safe mode:", error);
+            if (error.code === "ACTION_REJECTED")
+                setErrorMessage("User rejected transaction request");
+            else
+                setErrorMessage(error.message || "Unknown error");
         } finally {
             setIsSwitchingSafeMode(false);
             setDisableNav(false);
@@ -154,6 +167,10 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
             console.log("Succesfully switched campaigns creation mode.");
         } catch (error) {
             console.error("Error switching campaigns creation mode:", error);
+            if (error.code === "ACTION_REJECTED")
+                setErrorMessage("User rejected transaction request");
+            else
+                setErrorMessage(error.message || "Unknown error");
         } finally {
             setIsSwitchingCampaignsMode(false);
             setDisableNav(false);
@@ -207,6 +224,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
 
     return (
         <div className="contract-panel">
+            {errorMessage && <ErrorMessage message={errorMessage} setErrorMessage={setErrorMessage} />}
             <h2>Contract State</h2>
             <section className="contract-state-container">
                 <fieldset className="contract-state-option">
@@ -263,7 +281,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, cont
                     }
                 </div>
                 <button
-                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || receiverAddr.length < 40 || receiverAddr === deployerAddr || inSafeMode }
+                    disabled={isSending || amount <= 0 || amount > contractBalance.toString() || (!isWithdraw && receiverAddr.length < 40) || (!isWithdraw && receiverAddr === deployerAddr) || inSafeMode }
                     type="submit"
                     id="contract-panel-send-btn"
                     className="contract-panel-btn"
