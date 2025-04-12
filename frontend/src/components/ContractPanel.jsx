@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLink } from '@fortawesome/free-solid-svg-icons';
 import ErrorMessage from "./ErrorMessage";
 
-export default function ContractPanel({crowdfundContract, signer, provider, blockExplorerUrl, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
+export default function ContractPanel({crowdfundContract, signer, provider, blockExplorerUrl, logsChunkSize, deploymentBlock, setDisableNav, reloadContractPanelVar, inSafeMode, setInSafeMode }){
     const [isDeployer, setIsDeployer] = useState(false);
     const [deployerAddr, setDeployerAddr] = useState("");
     const [amount, setAmount] = useState(0);
@@ -66,10 +66,17 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
     async function getWithdrawEvents() {
         try {
             const filter = crowdfundContract.filters.ContractFundsWithdrawn();
-            const events = await crowdfundContract.queryFilter(filter);
+            const latestBlock = await provider.getBlockNumber();
+            const allEvents = [];
+    
+            for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+                const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+                const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+                allEvents.push(...events);
+            }
             
             const withdrawEvents = await Promise.all(
-                events.map(async event => {
+                allEvents.map(async event => {
                 const block = await provider.getBlock(event.blockNumber);
                 return {
                     type: "withdraw",
@@ -89,10 +96,17 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
     async function getFundsIncreaseEvents() {
         try {
             const filter = crowdfundContract.filters.ContractFundsIncreased();
-            const events = await crowdfundContract.queryFilter(filter);
+            const latestBlock = await provider.getBlockNumber();
+            const allEvents = [];
+    
+            for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+                const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+                const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+                allEvents.push(...events);
+            }
             
-            const withdrawEvents = await Promise.all(
-                events.map(async event => {
+            const increaseEvents = await Promise.all(
+                allEvents.map(async event => {
                 const block = await provider.getBlock(event.blockNumber);
                 return {
                     type: "increased",
@@ -104,7 +118,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
                 };
                 }
             ));
-            return withdrawEvents;
+            return increaseEvents;
         } catch (error) {
             console.error("Error fetching funds increase events:", error);
             return [];
@@ -114,26 +128,34 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
     async function getTransferEvents() {
         try {
             const filter = crowdfundContract.filters.ContractFundsTransferred();
-            const events = await crowdfundContract.queryFilter(filter);
-            
+            const latestBlock = await provider.getBlockNumber();
+            const allEvents = [];
+    
+            for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+                const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+                const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+                allEvents.push(...events);
+            }
+    
             const transferEvents = await Promise.all(
-                events.map(async (event) => {
-                const block = await provider.getBlock(event.blockNumber);
-                return {
-                    type: "transfer",
-                    amount: ethers.formatEther(event.args.amount),
-                    receiver: event.args.receiver,
-                    transactionHash: event.transactionHash,
-                    timestamp: block.timestamp,
-                };
-                }
-            ));
+                allEvents.map(async (event) => {
+                    const block = await provider.getBlock(event.blockNumber);
+                    return {
+                        type: "transfer",
+                        amount: ethers.formatEther(event.args.amount),
+                        receiver: event.args.receiver,
+                        transactionHash: event.transactionHash,
+                        timestamp: block.timestamp,
+                    };
+                })
+            );
+    
             return transferEvents;
         } catch (error) {
             console.error("Error fetching transfer events:", error);
             return [];
         }
-    }
+    }    
 
     async function switchSafeMode() {
         try {

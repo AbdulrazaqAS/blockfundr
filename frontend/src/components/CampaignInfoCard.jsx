@@ -23,7 +23,7 @@ function timeRemaining(deadlineInSeconds) {
   return {days, hours, minutes, seconds};
 }
 
-const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl, inSafeMode }) => {
+const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provider, deploymentBlock, logsChunkSize, blockExplorerUrl, setDisableNav, setShowCampaignInfo, faucetUrl, inSafeMode }) => {
   const [fundAmount, setFundAmount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -151,12 +151,18 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
 
   async function getFundedEvents(campaignId) {
     try {
-      const events = await crowdfundContract.queryFilter(
-        crowdfundContract.filters.Funded(campaignId)
-      );
+      const filter = crowdfundContract.filters.Funded(campaignId);
+      const latestBlock = await provider.getBlockNumber();
+      const allEvents = [];
+
+      for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+          const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+          const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+          allEvents.push(...events);
+      }
 
       const eventsObjs = await Promise.all(
-        events.map(async (event) => {
+        allEvents.map(async (event) => {
           const block = await provider.getBlock(event.blockNumber);
           return {
             campaignId: event.args.campaignId.toString(),
@@ -177,12 +183,18 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
 
   async function getRefundEvents(campaignId) {
     try {
-      const events = await crowdfundContract.queryFilter(
-        crowdfundContract.filters.Refunded(campaignId)
-      );
+      const filter = crowdfundContract.filters.Refunded(campaignId);
+      const latestBlock = await provider.getBlockNumber();
+      const allEvents = [];
+
+      for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+          const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+          const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+          allEvents.push(...events);
+      }
 
       const eventsObjs = await Promise.all(
-        events.map(async (event) => {
+        allEvents.map(async (event) => {
           const block = await provider.getBlock(event.blockNumber);
           return {
             campaignId: event.args.campaignId.toString(),
@@ -204,8 +216,16 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   async function getWithdrawEvent(campaignId) {
     try {
       const filter = crowdfundContract.filters.Withdrawn(null, creator);
-      const events = await crowdfundContract.queryFilter(filter);
-      const filteredEvents = events.filter((event) => event.args.campaignId.toString() === campaignId.toString());
+      const latestBlock = await provider.getBlockNumber();
+      const allEvents = [];
+
+      for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+          const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+          const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+          allEvents.push(...events);
+      }
+
+      const filteredEvents = allEvents.filter((event) => event.args.campaignId.toString() === campaignId.toString());
       const event = filteredEvents[0];
       if (!event) return null; // No withdraw event found for this campaign
 
@@ -227,8 +247,16 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, setSigner, provi
   async function getStopEvent(campaignId) {
     try {
       const filter = crowdfundContract.filters.Stopped();
-      const events = await crowdfundContract.queryFilter(filter);
-      const filteredEvents = events.filter((event) => event.args.campaignId.toString() === campaignId.toString());
+      const latestBlock = await provider.getBlockNumber();
+      const allEvents = [];
+
+      for (let fromBlock = deploymentBlock; fromBlock <= latestBlock; fromBlock += logsChunkSize) {
+          const toBlock = Math.min(fromBlock + logsChunkSize - 1, latestBlock);
+          const events = await crowdfundContract.queryFilter(filter, fromBlock, toBlock);
+          allEvents.push(...events);
+      }
+
+      const filteredEvents = allEvents.filter((event) => event.args.campaignId.toString() === campaignId.toString());
       const event = filteredEvents[0];
       if (!event) return null; // No event found for this campaign
 

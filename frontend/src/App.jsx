@@ -14,6 +14,8 @@ import Footer from './components/footer.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
 const CONTRACT_ADDRESS = '0xE8C2e71f6f890aA8ed568200B46dE613dBd29CF8';
+const DEPLOYMENT_BLOCK = 8103400;
+const LOGS_CHUNK_SIZE = 500; // alchemy free plan chunksize
 const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 const ALCHEMY_FAUCET_URL = "https://www.alchemy.com/faucets/ethereum-sepolia";
 const INFURA_ENDPOINT_PREFIX = "https://sepolia.infura.io/v3/";
@@ -472,6 +474,8 @@ function App() {
           reloadContractPanelVar={reloadContractPanelVar}
           inSafeMode={inSafeMode}
           setInSafeMode={setInSafeMode}
+          deploymentBlock={DEPLOYMENT_BLOCK}
+          logsChunkSize={LOGS_CHUNK_SIZE}
         />
       }
       {currentTab === "newCampaign" &&
@@ -501,6 +505,8 @@ function App() {
               setShowCampaignInfo={setShowCampaignInfo}
               faucetUrl={ALCHEMY_FAUCET_URL}
               inSafeMode={inSafeMode}
+              deploymentBlock={DEPLOYMENT_BLOCK}
+              logsChunkSize={LOGS_CHUNK_SIZE}
             />
           }
           <section>
