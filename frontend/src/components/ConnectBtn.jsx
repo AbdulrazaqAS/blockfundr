@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {ethers} from "ethers";
 
 function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletError, networkId}){
 	const [isConnecting, setIsConnecting] = useState(false);
