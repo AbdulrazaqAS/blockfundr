@@ -23,15 +23,17 @@ function ConnectBtn({setWalletDetected, network, address, signer, setSigner, set
 			setSigner(newSigner);
 			changeToNetwork(network.chainId); // Not working: Always not finding network in wallet
 		} catch (error) {
-			setWalletError(error.message);
-			if (error.code === 4001) {
-				console.log("User rejected request");
-			} else if (error.code === -32002) {
-				console.log("Request already pending");
-			} else {
-				console.error("Error connecting to wallet", error);
-			}
-			// setSigner(null);
+			if (error.code === "ACTION_REJECTED") setWalletError("User rejected request.");
+			else if (error.code === "CALL_EXCEPTION") setWalletError(error?.reason || error?.revert?.args[0]);
+			else setWalletError(error.message);
+
+			// if (error.code === 4001) {
+			// 	console.log("User rejected request");
+			// } else if (error.code === -32002) {
+			// 	console.log("Request already pending");
+			// } else {
+			// 	console.error("Error connecting to wallet", error);
+			// }
 		} finally {
 			setIsConnecting(false);
 		}
