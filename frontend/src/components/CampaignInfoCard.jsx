@@ -79,7 +79,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       setFundAmount(0);
     } catch (error) {
       console.error("Error sending funds:", error);
-      setError(error);
+      if (error.code === "INSUFFICIENT_FUNDS") setError(new Error("Insufficient funds"));
+      else if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else setError(error);
     } finally {
       setIsSending(false);
       setDisableNav(false);
@@ -95,10 +97,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       console.log("Withdraw successful:", txReceipt);
     } catch (error) {
       console.error("Error withdrawing funds:", error);
-      if (error.code === "ACTION_REJECTED")
-        setError(new Error("User rejected request."));
-      else
-        setError(error);
+      if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else if (error.code === "CALL_EXCEPTION") setError(new Error(error?.reason || error?.revert?.args[0]));
+      else setError(error);
     } finally {
       setIsWithdrawing(false);
       setDisableNav(false);
@@ -322,7 +323,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       }, 1000);
     }
 
-    setError(null);
+    // setError(null);
 
     return () => {
       if (!isClosed) clearInterval(updateTimeInterval);
@@ -349,7 +350,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
 
   return (
     <div className="campaignInfoCard">
-      {error && <ErrorMessage message={error?.message || "No message in error"} setErrorMessage={setError}/>}
+      {error && <ErrorMessage message={error.message} setErrorMessage={setError}/>}
       <CancelBtn onClick={() => setShowCampaignInfo(null)} disabled={isRefunding || isSending || isStopping || isWithdrawing}/>
       <h1>{title}  #{id}</h1>
       <div className="campaignInfoCard-top">

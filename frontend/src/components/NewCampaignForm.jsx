@@ -181,7 +181,7 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, s
       alert("Failed to create new campaign. Please try again.");
       return;
     }
-    setNewCampaignTxHash(txReceipt.transactionHash);
+    setNewCampaignTxHash(txReceipt.hash);
     console.log("New campaign created successfully:", txReceipt);
 
     if (signer){ // signer maybe null if just connected by clicking the create campaign button due async nature of updating state var.
@@ -212,7 +212,7 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, s
         <h2>Create a New Campaign</h2>
         {signer && !isDeployer && crowdfundContract && <p style={{textAlign:"center"}}>Non-contract deployer can only have {maxUserCampaigns} active campaigns. You have {userCampaigns} active campaigns.</p>}
         {noNewCampaignsMode && <ErrorMessage message={"Contract creation is currently disabled. Try again later."} />}
-        {error && <ErrorMessage message={error.message} />}
+        {error && <ErrorMessage message={error.message} setErrorMessage={setError} />}
         <div className="formFieldBox">
             <label>Cover Image</label>
             <input type="file" accept="image/*" onChange={handleFileChange} required/>
@@ -259,8 +259,7 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, s
             noNewCampaignsMode ||
             !crowdfundContract ||
             inSafeMode ||
-            loadingNewCampaign || 
-            error || 
+            loadingNewCampaign ||
             (minGoal && goal < formatEther(minGoal)) || 
             (minDuration && calculateDuration(deadline) < minDuration) ||
             (signer && !isDeployer && userCampaigns >= maxUserCampaigns)  // considering signer so that if the user is not connected, the button is enabled to get connected. Bcoz if no signer userCampaigns = maxUserCampaigns = 0 and that will disable the btn.

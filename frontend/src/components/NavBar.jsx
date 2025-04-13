@@ -3,7 +3,7 @@ import { formatEther } from "ethers";
 import ConnectBtn from './ConnectBtn.jsx';
 
 const NavBar = forwardRef((props, ref) => {
-  const { crowdfundContract, walletDetected, setWalletDetected, address, setCurrentTab, contractAddress, provider, signer, setSigner, networkId, setWalletError, disableNav, currentTab } = props;
+  const { crowdfundContract, walletDetected, setWalletDetected, address, setCurrentTab, contractAddress, provider, network, signer, setSigner, setWalletError, disableNav, currentTab, fetchBalanceDummyVar } = props;
 
   const [totalBalance, setTotalBalance] = useState(0);
   const [contractBalance, setContractBalance] = useState(0);
@@ -15,7 +15,7 @@ const NavBar = forwardRef((props, ref) => {
 
   useEffect(() => {
     const fetchContractBalance = async () => {
-      if (provider && contractAddress && crowdfundContract) {
+      if (contractAddress && crowdfundContract) {
         try {
           const totalBalance = provider.getBalance(contractAddress);
           const contractBalance = crowdfundContract.contractBalance();
@@ -33,9 +33,9 @@ const NavBar = forwardRef((props, ref) => {
 
     fetchContractBalance();
 
-    const interval = setInterval(fetchContractBalance, 10000);
+    const interval = setInterval(fetchContractBalance, 180000);
     return () => clearInterval(interval);
-  }, [provider, crowdfundContract]);
+  }, [crowdfundContract, fetchBalanceDummyVar]);
 
   return (
     <div ref={ref}>
@@ -45,7 +45,7 @@ const NavBar = forwardRef((props, ref) => {
           <p className="contract-balance">Total Eth<br />{totalBalance.toString().slice(0, 7)}</p>
           <p className="contract-balance">Contract Eth<br />{contractBalance.toString().slice(0, 7)}</p>
         </div>
-        <ConnectBtn walletDetected={walletDetected} setWalletDetected={setWalletDetected} setWalletError={setWalletError} networkId={networkId} address={address} provider={provider} signer={signer} setSigner={setSigner}/>
+        <ConnectBtn network={network} walletDetected={walletDetected} setWalletDetected={setWalletDetected} setWalletError={setWalletError} address={address} provider={provider} signer={signer} setSigner={setSigner}/>
       </div>
       <nav className="navbar navbar-bottom">
         <div

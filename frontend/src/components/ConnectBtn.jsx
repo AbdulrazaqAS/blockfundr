@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {ethers} from "ethers";
 
-function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletError, networkId}){
+function ConnectBtn({setWalletDetected, network, address, signer, setSigner, setWalletError}){
 	const [isConnecting, setIsConnecting] = useState(false);
 
 	async function connectWallet(){
@@ -13,7 +13,6 @@ function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletErr
 		
 		try {
 			setIsConnecting(true);
-			console.log("NetworkID", networkId);
 			const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
 			const newSigner = await metamaskProvider.getSigner(0);
 			if (signer && (newSigner.address === signer.address)) {
@@ -22,7 +21,7 @@ function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletErr
 
 			console.log("Connected Signer:", newSigner);
 			setSigner(newSigner);
-			//changeToNetwork(networkId); // Seems not working
+			changeToNetwork(network.chainId); // Not working: Always not finding network in wallet
 		} catch (error) {
 			setWalletError(error.message);
 			if (error.code === 4001) {
@@ -54,20 +53,47 @@ function ConnectBtn({setWalletDetected, address, signer, setSigner, setWalletErr
 				params: [{chainId: networkIdHex}]
 			});
 		} catch (error) {
-			setWalletError(error.message);
+			let msg = "";
 			if (error.code === 4902) {
-				console.error("Network not found, please add it to your wallet");
+				msg = `Network ${network} not found, please add it to your wallet. Or switch to it manually.`
 			} else if (error.code === 4001) {
-				console.error("User rejected request");
+				msg = "User rejected request."
 			} else {
-				console.error("Error switching network", error);
+				msg = "Error switching network.";
 			}
-			setAddress(null);
+
+			console.error(msg, error);
+			setWalletError(msg);
 		}	
 	}
 
+	async function addSepoliaNetwork() {
+		const networkId = 11155111;
+		try {
+			await window.ethereum.request({
+				method: "wallet_addEthereumChain",
+				params: [
+					{
+					chainId: `0x${networkId.toString(16)}`,
+					chainName: "Sepolia Testnet",
+					nativeCurrency: {
+						name: "SepoliaETH",
+						symbol: "SepoliaETH",
+						decimals: 18,
+					},
+					rpcUrls: ["https://sepolia.infura.io/v3/"],
+					blockExplorerUrls: ["https://sepolia.etherscan.io/"],
+					},
+				],
+			});
+		} catch (error) {
+			console.error("Error adding network:", error);
+			setWalletError("Error adding network. Please add it manually.");
+		}
+	}
+
 	return (
-		<button className="connectBtn" onClick={connectWallet} disabled={isConnecting}>
+		<button className="connectBtn" onClick={connectWallet} disabled={isConnecting || !network}>  {/* SHould be disabled if network obj has not been populated */}
 			{address ? (address.toString().slice(0, 7) + "..." + address.toString().slice(37))
 				: isConnecting ? "Connecting..." : ("Connect Wallet")
 			}

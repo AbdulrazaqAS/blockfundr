@@ -25,6 +25,7 @@ const ALCHEMY_ENDPOINT_PREFIX = "https://eth-sepolia.g.alchemy.com/v2/";
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
   const [provider, setProvider] = useState(null);
+  const [network, setNetwork] = useState(null);
   const [crowdfundContract, setCrowdfundContract] = useState(null);
   const [address, setAddress] = useState("");
   const [signer, setSigner] = useState(null);
@@ -37,7 +38,8 @@ function App() {
   const [initError, setInitError] = useState(null);
   const [currentTab, setCurrentTab] = useState("campaigns");
   const [disableNav, setDisableNav] = useState(false);
-  const [reloadContractPanelVar, setReloadContractPanelVar] = useState(false);
+  const [reloadContractPanelVar, setReloadContractPanelVar] = useState(0);
+  const [fetchBalanceDummyVar, setFetchBalanceDummyVar] = useState(0);
   const [inSafeMode, setInSafeMode] = useState(false);
   
   const campaignInfoRef = useRef(null);
@@ -136,16 +138,39 @@ function App() {
     if (window.ethereum === undefined) setWalletDetected(false);
     else setWalletDetected(true);
 
+    async function connectProvider(){
+      try {
+        const provider = new ethers.JsonRpcProvider(ALCHEMY_ENDPOINT_PREFIX + import.meta.env.VITE_ALCHEMY_API_KEY);
+        
+        const network = provider.getNetwork();
+        network.then((val) => {
+          setProvider(provider);
+          setNetwork({name: val.name, chainId: val.chainId})
+          console.log("Provider Network:", val)
+        }).catch((error) => {
+          throw error;
+        });
+      } catch (error) {
+        throw error;
+      }
+    }
+
     try {
-      const provider = new ethers.JsonRpcProvider(ALCHEMY_ENDPOINT_PREFIX + import.meta.env.VITE_ALCHEMY_API_KEY);
-      setProvider(provider);
+      connectProvider();
+    } catch (error) {
+      setInitError(error.message);
+      console.error("Error connecting to provider:", error);
 
-      const network = provider.getNetwork();
-      network.then((val) => {
-        console.log("Network", val)
-      });
+      const reload  = setInterval(connectProvider, 10000);  // TODO: Will the automatic retry to connect to provider do this job?
 
-      const code = provider.getCode(CONTRACT_ADDRESS);
+      return () => clearInterval(reload);
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!provider) return;
+
+    const code = provider.getCode(CONTRACT_ADDRESS);
       // TODO: show loading message while waiting to resolve
       code.then((val) => {
         try {
@@ -173,12 +198,8 @@ function App() {
             });
           }, 10000);
         }
-      }); 
-    } catch (error) {
-      console.error("Error connecting to provider:", error);
-      setInitError(error.message);
-    }
-  }, [])
+      });
+  }, [provider]);
 
   // useEffect(() => {
   //   if (window.ethereum === undefined) setWalletDetected(false);
@@ -261,6 +282,7 @@ function App() {
           updatedCampaigns[campaignIndex] = fundedCampaignObj;
           return updatedCampaigns;
         });
+        setFetchBalanceDummyVar(prev => prev + 1);
       });
 
       crowdfundContract.on("Withdrawn", async (campaignId, creator, amount) => {
@@ -296,6 +318,7 @@ function App() {
           return prev.filter((el) => el.id !== campaignId);  // remove the closed card from active cards
         })
         setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
+        setFetchBalanceDummyVar(prev => prev + 1);
       });
 
       crowdfundContract.on("Stopped", async (campaignId, byCreator) => {  // if not byCreator then it is byAdmin(deployer)
@@ -334,6 +357,7 @@ function App() {
           return prev.filter((el) => el.id !== campaignId);
         })
         setShowCampaignInfo(null); // closing the currently opened campaign because it will change group/list
+        setFetchBalanceDummyVar(prev => prev + 1);
       });
 
       crowdfundContract.on("Refunded", async (campaignId, backer, amount) => {
@@ -357,6 +381,7 @@ function App() {
           updatedCampaigns[campaignIndex] = refundingCampaignObj;
           return updatedCampaigns;
         });
+        setFetchBalanceDummyVar(prev => prev + 1);
       });
 
       crowdfundContract.on("ContractFundsIncreased", async (actionType, campaignId, amount) => {
@@ -368,6 +393,7 @@ function App() {
 
       crowdfundContract.on("ContractFundsWithdrawn", async (amount) => {
         console.log("ContractFundsWithdrawn event:", { amount });
+        setFetchBalanceDummyVar(prev => prev + 1);
         
         if (currentTab !== "contractPanel") return;
         setReloadContractPanelVar(prev => prev + 1);
@@ -375,6 +401,7 @@ function App() {
       
       crowdfundContract.on("ContractFundsTransferred", async (receiver, amount) => {
         console.log("ContractFundsTransferred event:", { receiver, amount });
+        setFetchBalanceDummyVar(prev => prev + 1);
 
         if (currentTab !== "contractPanel") return;
         setReloadContractPanelVar(prev => prev + 1);
@@ -382,14 +409,15 @@ function App() {
 
       // Shouldn't this block clear the listeners so that they don't accumulate?
       return () => {
-        crowdfundContract.off("CampaignCreated");
-        crowdfundContract.off("Funded");
-        crowdfundContract.off("Withdrawn");
-        crowdfundContract.off("Stopped");
-        crowdfundContract.off("Refunded");
-        crowdfundContract.off("ContractFundsIncreased");
-        crowdfundContract.off("ContractFundsWithdrawn");
-        crowdfundContract.off("ContractFundsTransferred");
+        // crowdfundContract.off("CampaignCreated");
+        // crowdfundContract.off("Funded");
+        // crowdfundContract.off("Withdrawn");
+        // crowdfundContract.off("Stopped");
+        // crowdfundContract.off("Refunded");
+        // crowdfundContract.off("ContractFundsIncreased");
+        // crowdfundContract.off("ContractFundsWithdrawn");
+        // crowdfundContract.off("ContractFundsTransferred");
+        // crowdfundContract.removeAllListeners();
       };
     }
   }, [crowdfundContract]);
@@ -420,10 +448,9 @@ function App() {
         }
       }
 
-      const handleChainChanged = (chainId) => {
+      const handleChainChanged = async (chainId) => {
         console.log("Chain changed to:", chainId);
-        window.location.reload(); // Reload the page to handle the new chain
-        // Is there need to reconnect accounts?
+        // window.location.reload();
       }
 
       const handleDisconnect = (error) => {
@@ -454,13 +481,14 @@ function App() {
         address={address}
         contractAddress={CONTRACT_ADDRESS}
         provider={provider}
+        network={network}
         signer={signer}
         setSigner={setSigner}
-        networkId={SEPOLIA_NETWORK_ID}
         setWalletError={setWalletError}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         disableNav={disableNav}
+        fetchBalanceDummyVar={fetchBalanceDummyVar}
       />
       {inSafeMode && <ErrorMessage message={"Contract is in safemode (Readonly)"} />}
       { !walletDetected && <NoWalletDetected setWalletDetected={setWalletDetected} /> }
