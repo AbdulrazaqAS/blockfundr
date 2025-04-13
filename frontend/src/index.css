@@ -148,6 +148,16 @@ button:disabled {
   list-style: none;
 }
 
+.isLoadingContextText {
+  padding: 10px 20px;
+  background-color: rgb(107, 64, 134);
+  color: white;
+  font-size: large;
+  border-radius: 10px;
+  border: 2px solid rgb(33, 3, 51);
+  text-align: center;
+}
+
 .card {
   width: 250px;
   height: 400px;

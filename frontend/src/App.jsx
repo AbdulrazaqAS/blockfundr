@@ -41,6 +41,7 @@ function App() {
   const [reloadContractPanelVar, setReloadContractPanelVar] = useState(0);
   const [fetchBalanceDummyVar, setFetchBalanceDummyVar] = useState(0);
   const [inSafeMode, setInSafeMode] = useState(false);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true);
   
   const campaignInfoRef = useRef(null);
   
@@ -131,6 +132,8 @@ function App() {
     } catch (error) {
       console.error("Error loading campaigns from contract:", error);
       setInitError(error.message);
+    } finally {
+      setIsLoadingCampaigns(false);
     }
   }
 
@@ -417,7 +420,7 @@ function App() {
         // crowdfundContract.off("ContractFundsIncreased");
         // crowdfundContract.off("ContractFundsWithdrawn");
         // crowdfundContract.off("ContractFundsTransferred");
-        // crowdfundContract.removeAllListeners();
+        crowdfundContract.removeAllListeners();
       };
     }
   }, [crowdfundContract]);
@@ -545,6 +548,7 @@ function App() {
           <section>
             <h2 className="active-campaigns-h2">Active Campaigns ({totalActiveCampaigns})</h2>
             <ul className="active-campaigns-container">
+              {isLoadingCampaigns && <p className='isLoadingContextText'>Loading Campaigns from contract...</p>}
               {campaigns.map((campaign) => (
                 <li key={campaign.id}>
                   <Card
@@ -565,6 +569,7 @@ function App() {
           <section>
             <h2 className="active-campaigns-h2">Closed Campaigns ({totalClosedCampaigns})</h2>
             <ul className="active-campaigns-container">
+              {isLoadingCampaigns && <p className='isLoadingContextText'>Loading Campaigns from contract...</p>}
               {closedCampaigns.map((campaign) => (
                 <li key={campaign.id}>
                   <Card

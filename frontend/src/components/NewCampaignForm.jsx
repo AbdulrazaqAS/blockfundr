@@ -86,6 +86,9 @@ export default function CreateCampaign({ crowdfundContract, setWalletDetected, s
       return txReceipt;
     } catch (error) {
       console.error("Error creating new campaign:", error);
+      if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else if (error.code === "CALL_EXCEPTION") setError(new Error(error?.reason || error?.revert?.args[0]));
+      else setError(error);
       return null;
     }
   }

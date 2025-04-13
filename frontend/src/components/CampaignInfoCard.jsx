@@ -37,6 +37,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
   const [timeRemainingStr, setTimeRemainingStr] = useState("");
   const [withdrawable, setWithdrawable] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   const {
     id,
@@ -81,6 +82,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       console.error("Error sending funds:", error);
       if (error.code === "INSUFFICIENT_FUNDS") setError(new Error("Insufficient funds"));
       else if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else if (error.code === "CALL_EXCEPTION") setError(new Error(error?.reason || error.code));
       else setError(error);
     } finally {
       setIsSending(false);
@@ -115,10 +117,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       console.log("Campaign stopped successfully:", txReceipt);
     } catch (error) {
       console.error("Error stopping campaign:", error);
-      if (error.code === "ACTION_REJECTED")
-        setError(new Error("User rejected request."));
-      else
-        setError(error);
+      if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else if (error.code === "CALL_EXCEPTION") setError(new Error(error?.reason || error?.revert?.args[0]));
+      else setError(error);
     } finally {
       setIsStopping(false);
       setDisableNav(false);
@@ -290,6 +291,11 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
 
   useEffect(() => {
     async function fetchHistory() {
+      setIsLoadingHistory(true);
+      setFundsHistory([]);
+      setRefundHistory([]);
+      setCloseEvent(null);
+
       const fundedEvents = await getFundedEvents(id);
       setFundsHistory(fundedEvents);
 
@@ -305,7 +311,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
           setCloseEvent(withdrawEvent);
         }
       }
-
+      setIsLoadingHistory(false);
     }
 
     fetchHistory();
@@ -373,6 +379,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
         </div>
       </div>
       <div className="campaignInfoCard-middle">
+        {/* TODO: Add user eth balance above the input field */}
         {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
         <div className="camapignInfo-buttons">
           <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping || inSafeMode} onClick={() => sendFunds(fundAmount)}>
@@ -404,6 +411,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
         <section className="overflow-section">
           <hr />
           <h2>Close History</h2>
+          {isLoadingHistory && <p className="isLoadingContextText">Loading history from contract...</p>}
           {closeEvent && (
             <div className="close-event-details-container">
               <p><strong>Close Trigger:</strong> {isStopped ? "Stopped" : "Funds Withdrawn"}</p>
@@ -481,6 +489,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
             ))}
           </tbody>
         </table>
+        {isLoadingHistory && <p className="isLoadingContextText">Loading history from contract...</p>}
       </section>
     </div>
   );

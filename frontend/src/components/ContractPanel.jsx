@@ -17,6 +17,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
     const [isSwitchingCampaignsMode, setIsSwitchingCampaignsMode] = useState(false);
     const [noNewCampaignsMode, setNoNewCampaignsMode] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
     async function withdraw(amount){
         try {
@@ -30,10 +31,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
             setAmount(0);
         } catch (error) {
             console.error("Error withdrawing funds:", error);
-            if (error.code === "ACTION_REJECTED")
-                setErrorMessage("User rejected transaction request");
-            else
-                setErrorMessage(error.message || "Unknown error");
+            if (error.code === "ACTION_REJECTED") setErrorMessage("User rejected request.");
+            else if (error.code === "CALL_EXCEPTION") setErrorMessage(error?.reason || error?.revert?.args[0]);
+            else setErrorMessage(error.message);
         } finally {
             setIsSending(false);
             setDisableNav(false);
@@ -53,10 +53,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
             setReceiverAddr("");
         } catch (error) {
             console.error("Error transferring funds:", error);
-            if (error.code === "ACTION_REJECTED")
-                setErrorMessage("User rejected transaction request");
-            else
-                setErrorMessage(error.message || "Unknown error");
+            if (error.code === "ACTION_REJECTED") setErrorMessage("User rejected request.");
+            else if (error.code === "CALL_EXCEPTION") setErrorMessage(error?.reason || error?.revert?.args[0]);
+            else setErrorMessage(error.message);
         } finally {
             setIsSending(false);
             setDisableNav(false);
@@ -168,10 +167,9 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
             console.log("Succesfully switched safe mode.");
         } catch (error) {
             console.error("Error switching safe mode:", error);
-            if (error.code === "ACTION_REJECTED")
-                setErrorMessage("User rejected transaction request");
-            else
-                setErrorMessage(error.message || "Unknown error");
+            if (error.code === "ACTION_REJECTED") setErrorMessage("User rejected request.");
+            else if (error.code === "CALL_EXCEPTION") setErrorMessage(error?.reason || error?.revert?.args[0]);
+            else setErrorMessage(error.message);
         } finally {
             setIsSwitchingSafeMode(false);
             setDisableNav(false);
@@ -189,22 +187,14 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
             console.log("Succesfully switched campaigns creation mode.");
         } catch (error) {
             console.error("Error switching campaigns creation mode:", error);
-            if (error.code === "ACTION_REJECTED")
-                setErrorMessage("User rejected transaction request");
-            else
-                setErrorMessage(error.message || "Unknown error");
+            if (error.code === "ACTION_REJECTED") setErrorMessage("User rejected request.");
+            else if (error.code === "CALL_EXCEPTION") setErrorMessage(error?.reason || error?.revert?.args[0]);
+            else setErrorMessage(error.message);
         } finally {
             setIsSwitchingCampaignsMode(false);
             setDisableNav(false);
         }
     }
-
-    useEffect(() => {
-        if (!crowdfundContract) return;
-
-        
-        
-      }, [crowdfundContract]);
 
     useEffect(() => {
         if (!crowdfundContract) return;
@@ -215,6 +205,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
             const allEvents = [...withdrawEvents, ...transferEvents, ...increaseEvents];
             allEvents.sort((a, b) => b.timestamp - a.timestamp);
             setFundsHistory(allEvents);
+            setIsLoadingHistory(false);
         };
 
         const fetchContractBalance = async () => {
@@ -228,7 +219,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
         };
 
         fetchContractBalance();
-        fetchEvents();
+        fetchEvents();  // TODO: Fix: reloading 3 events on dependency change from the first block is time consuming 
     
         const interval = setInterval(fetchContractBalance, 1500);  // TODO: Check whether the timer is still required bcoz reloadContractPanelVar as dependency should do the work 
         return () => clearInterval(interval);
@@ -355,6 +346,7 @@ export default function ContractPanel({crowdfundContract, signer, provider, bloc
                     ))}
                     </tbody>
                 </table>
+                {isLoadingHistory && <p className="isLoadingContextText">Loading history from contract...</p>}
             </section>
         </div>
     )
