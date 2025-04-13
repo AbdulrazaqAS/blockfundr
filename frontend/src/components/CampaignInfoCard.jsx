@@ -38,6 +38,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
   const [withdrawable, setWithdrawable] = useState(0);
   const [isDeployer, setIsDeployer] = useState(false); // Contract deployer
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [userBalance, setUserBalance] = useState(null);
 
   const {
     id,
@@ -78,6 +79,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       const txReceipt = await tx.wait();
       console.log("Transaction successful:", txReceipt);
       setFundAmount(0);
+      fetchUserBalance();
     } catch (error) {
       console.error("Error sending funds:", error);
       if (error.code === "INSUFFICIENT_FUNDS") setError(new Error("Insufficient funds"));
@@ -97,6 +99,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       const tx = await crowdfundContract.connect(signer).withdrawFunds(id);
       const txReceipt = await tx.wait();
       console.log("Withdraw successful:", txReceipt);
+      fetchUserBalance();
     } catch (error) {
       console.error("Error withdrawing funds:", error);
       if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
@@ -134,6 +137,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       const tx = await crowdfundContract.connect(signer).takeRefund(id);
       const txReceipt = await tx.wait();
       console.log("Refund requested successfully:", txReceipt);
+      fetchUserBalance();
     } catch (error) {
       console.error("Error requesting refund:", error);
       if (error.code === "ACTION_REJECTED")
@@ -281,6 +285,18 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
     }
   }
 
+  async function fetchUserBalance() {
+    if (!signer) return;
+
+    try {
+      const balance = await provider.getBalance(signer.address);
+      setUserBalance(ethers.formatEther(balance.toString()));
+    } catch (error) {
+      console.error("Error fetching user balance:", error);
+      setUserBalance(null);
+    }
+  }
+
   function getTimeRemainingStr(deadlineInSeconds){
     const timeRemainingObj = timeRemaining(deadline.toString());
     return  timeRemainingObj.days + " days " + 
@@ -344,6 +360,7 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
     }
 
     setIsOwner(signer.address === campaign.creator);
+    fetchUserBalance();
 
     crowdfundContract.owner().then((deployerAddress) => {
       setIsDeployer(signer.address === deployerAddress);
@@ -379,8 +396,12 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
         </div>
       </div>
       <div className="campaignInfoCard-middle">
-        {/* TODO: Add user eth balance above the input field */}
-        {!isClosed && <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />}
+        {!isClosed &&
+          <div className="camapignInfo-sendAmountContainer">
+            {signer && <p>Account Balance: {userBalance === null ? "Loading" : userBalance.slice(0, 8)}</p>}
+            <input type="number" min="0" value={fundAmount} placeholder="Enter amount in Eth" onChange={(e) => {setFundAmount(e.target.value)}} />
+          </div>
+        }
         <div className="camapignInfo-buttons">
           <button disabled={isSending || fundAmount <= 0 || isClosed || isStopping || inSafeMode} onClick={() => sendFunds(fundAmount)}>
             {isSending ? "Sending..." : isStopped ? "Stopped" : isClosed ? "Closed" : "Send Funds"}  {/* Priority left to right */}

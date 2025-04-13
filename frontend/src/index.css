@@ -322,8 +322,12 @@ progress {
   height: 100%;
 }
 
-.camapignInfo-buttons {
+.camapignInfo-buttons, .camapignInfo-sendAmountContainer {
   display: inline;
+}
+
+.camapignInfo-sendAmountContainer p{
+  font-size: smaller;
 }
 
 .campaignInfoCard-middle button {
