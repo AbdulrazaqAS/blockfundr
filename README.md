@@ -1,4 +1,5 @@
-# Blockchain Crowdfunding Platform
+# BlockFundr
+## Blockchain Fundraiser App
 
 **Steps**
 - Create a campaign: set deadline and target goal.
