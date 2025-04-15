@@ -13,14 +13,13 @@ import ContractPanel from './components/ContractPanel.jsx';
 import Footer from './components/footer.jsx';
 
 const HARDHAT_NETWORK_ID = '31337';
-const SEPOLIA_NETWORK_ID = '11155111';
-const CONTRACT_ADDRESS = '0xE8C2e71f6f890aA8ed568200B46dE613dBd29CF8';
-const DEPLOYMENT_BLOCK = 8103400;
+// const CONTRACT_ADDRESS = '0xE8C2e71f6f890aA8ed568200B46dE613dBd29CF8';
+const CONTRACT_ADDRESS = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
+// const DEPLOYMENT_BLOCK = 8103400;
+const DEPLOYMENT_BLOCK = 1;
 const LOGS_CHUNK_SIZE = 500; // alchemy free plan chunksize
 const blockExplorerUrl = "https://sepolia.etherscan.io/tx/";
 const ALCHEMY_FAUCET_URL = "https://www.alchemy.com/faucets/ethereum-sepolia";
-const INFURA_ENDPOINT_PREFIX = "https://sepolia.infura.io/v3/";
-const ALCHEMY_ENDPOINT_PREFIX = "https://eth-sepolia.g.alchemy.com/v2/";
 
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
@@ -138,33 +137,44 @@ function App() {
   }
 
   useEffect(() => {
-    if (window.ethereum === undefined) setWalletDetected(false);
+    if (window.ethereum === undefined) {
+      setWalletDetected(false);
+      return;
+    }
     else setWalletDetected(true);
 
     async function connectProvider(){
       try {
-        const provider = new ethers.JsonRpcProvider(ALCHEMY_ENDPOINT_PREFIX + import.meta.env.VITE_ALCHEMY_API_KEY);
-        
-        const network = provider.getNetwork();
-        network.then((val) => {
-          setProvider(provider);
-          setNetwork({name: val.name, chainId: val.chainId})
-          console.log("Provider Network:", val)
-        }).catch((error) => {
-          throw error;
-        });
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const network = await provider.getNetwork();
+        setNetwork({name: network.name, chainId: network.chainId})
+        setProvider(provider);
+        console.log("Provider Network:", network)
+
+        return provider
       } catch (error) {
         throw error;
       }
     }
 
+    // 1. Fix the setinterval that it clear itself if the provider is connected
     try {
       connectProvider();
     } catch (error) {
       setInitError(error.message);
       console.error("Error connecting to provider:", error);
 
-      const reload  = setInterval(connectProvider, 10000);  // TODO: Will the automatic retry to connect to provider do this job?
+      const reload  = setInterval(async () => {
+        let providerConnected = null;
+        try {
+          providerConnected = connectProvider();
+        } catch (error) {
+          setInitError(error.message);
+          console.error("Error connecting to provider (retrying...):", error);
+        } finally {
+          if (providerConnected) clearInterval(reload);
+        }
+      }, 10000);
 
       return () => clearInterval(reload);
     }

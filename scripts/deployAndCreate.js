@@ -10,7 +10,8 @@ async function main() {
     );
   }
 
-  const [deployer, signer1, signer2] = await ethers.getSigners();
+  const signers = await ethers.getSigners();
+  const deployer = signers[0];
   const deployerAddress = await deployer.getAddress();
   const contractName = "Crowdfund";
 
@@ -38,26 +39,26 @@ async function main() {
     await tx.wait();
   }
 
-  for (let i=0; i< 6; i++){
-    const metadataUrl = campaingsJson[i].ipfsUrl;
-    let goal = ethers.parseEther(campaingsJson[i].goal.toString());
-    let duration = parseInt(campaingsJson[i].duration) * 24 * 60 * 60
+  for (let i=0; i< 35; i++){
+    const metadataUrl = campaingsJson[i % campaingsJson.length].ipfsUrl;
+    let goal = ethers.parseEther(campaingsJson[i % campaingsJson.length].goal.toString());
+    let duration = parseInt(campaingsJson[i % campaingsJson.length].duration) * 24 * 60 * 60
 
     try {
       // Hardcoded values for testing
-      if (i === 0) duration = await crowdfund.MIN_DURATION();
-      if (i === 0) goal = await crowdfund.MIN_GOAL();
+      // if (i === 0) duration = await crowdfund.MIN_DURATION();
+      // if (i === 0) goal = await crowdfund.MIN_GOAL();
 
-      let acctIdx = Math.floor(Math.random() * 3);
-      let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
+      let acctIdx = Math.floor(Math.random() * 7);
+      let acct = signers[acctIdx];
       const campaignId = await createCampaign(acct, metadataUrl, goal, duration);
       
-      const fundings = 10;
+      const fundings = Math.random() * 15 + 5;
       for (let j=0;j<fundings;j++) {
-        let amount = Math.random() * 0.5 + 0.05;
+        let amount = Math.random() * 0.35 + 0.05;
         amount = amount.toFixed(5);
-        let acctIdx = Math.floor(Math.random() * 3);
-        let acct = acctIdx === 0 ? deployer : acctIdx === 1 ? signer1 : signer2;
+        let acctIdx = Math.floor(Math.random() * 20);
+        let acct = signers[acctIdx];
         await fundCampaign(acct, campaignId, amount);
       }
     } catch (error) {
