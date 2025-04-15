@@ -140,10 +140,9 @@ const CampaignDetails = ({ crowdfundContract, campaign, signer, provider, deploy
       fetchUserBalance();
     } catch (error) {
       console.error("Error requesting refund:", error);
-      if (error.code === "ACTION_REJECTED")
-        setError(new Error("User rejected request."));
-      else
-        setError(error);
+      if (error.code === "ACTION_REJECTED") setError(new Error("User rejected request."));
+      else if (error.code === "CALL_EXCEPTION") setError(new Error(error?.reason || error?.revert?.args[0]));
+      else setError(error);
     } finally {
       setIsRefunding(false);
       setDisableNav(false);

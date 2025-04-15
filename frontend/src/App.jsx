@@ -164,7 +164,17 @@ function App() {
       setInitError(error.message);
       console.error("Error connecting to provider:", error);
 
-      const reload  = setInterval(connectProvider, 10000);  // TODO: Will the automatic retry to connect to provider do this job?
+      const reload  = setInterval(async () => {
+        let providerConnected = null;
+        try {
+          providerConnected = connectProvider();
+        } catch (error) {
+          setInitError(error.message);
+          console.error("Error connecting to provider (retrying...):", error);
+        } finally {
+          if (providerConnected) clearInterval(reload);
+        }
+      }, 10000);
 
       return () => clearInterval(reload);
     }
