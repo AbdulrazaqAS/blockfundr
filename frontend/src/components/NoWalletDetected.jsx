@@ -8,9 +8,7 @@ export default function NoWalletDetected({setWalletDetected}) {
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       if (/android|iphone|ipad|ipod/i.test(userAgent)) {
         setIsMobile(true);
-        console.log("Using mobile device")
       }
-      console.log("user", userAgent)
     };
     checkIfMobile();
   }, []);
