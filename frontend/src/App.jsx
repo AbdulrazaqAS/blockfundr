@@ -140,8 +140,8 @@ function App() {
   }
 
   useEffect(() => {
-    if (window.ethereum === undefined) setWalletDetected(false);
-    else setWalletDetected(true);
+    // if (window.ethereum === undefined) setWalletDetected(false);
+    // else setWalletDetected(true);
 
     async function connectProvider(){
       try {
