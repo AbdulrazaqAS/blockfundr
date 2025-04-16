@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export default function NoWalletDetected({setWalletDetected}) {
   const [isMobile, setIsMobile] = useState(false);
 
