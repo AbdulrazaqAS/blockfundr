@@ -10,6 +10,7 @@ export default function NoWalletDetected({setWalletDetected}) {
         setIsMobile(true);
         console.log("Using mobile device")
       }
+      console.log("user", userAgent)
     };
     checkIfMobile();
   }, []);
