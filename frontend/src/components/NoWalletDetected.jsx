@@ -17,7 +17,7 @@ export default function NoWalletDetected({setWalletDetected}) {
 
   return (
     <div className="error-bar">
-      {isMobile ? (
+      {!isMobile ? (
         <>
           <p>
             No Ethereum wallet was detected.
@@ -39,7 +39,7 @@ export default function NoWalletDetected({setWalletDetected}) {
               <a href="http://metamask.io" target="_blank" rel="noopener noreferrer">
                   MetaMask
               </a>
-              and visit this website from the app.
+              {" "}and visit this website from the app.
             </p>
             <button onClick={() => setWalletDetected(true)}>
               <span>&times;</span>
