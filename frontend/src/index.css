@@ -37,7 +37,6 @@ textarea {
   display: flex;
   align-items: center;
   margin: 0px 10px;
-  height: 100%;
   font-size: large;
   padding: 10px;
   border: solid 2px rgb(144, 98, 170);
@@ -489,11 +488,14 @@ footer li p {
 @media screen and (max-width: 680px) {
   .navbar-top {
     flex-direction: column;
+    row-gap: 7px;
+    padding: 0px 0px 5px 0px;
   }
 
   .navbar-nav {
-    margin: 0px 1px;
-    padding: 2px 1px;
+    margin: auto;
+    padding: 2px 3px;
+    height: 40px;
   }
 
   #newCampaignContainer form {

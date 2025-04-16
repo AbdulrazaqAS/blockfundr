@@ -24,6 +24,8 @@ The deployer (admin) of the contract has more previlages than other users. The a
 
 All these activities are logged to the frontend as history tables to provide transparency.
 
+Visit [Blockfudr](https://crowdfunding-nu-two.vercel.app/) to interact with a version of the contract deployed on Ethereum Sepolia testnet.
+
 
 ### Cloning the project
 Smart contract part (Solidity + Hardhat)
@@ -54,4 +56,4 @@ Branches:
 - **main**: For Production
 - **updates**: For development
 - **localnode**: For running app on local node. Uses metamask wallet as provider.
-- **private-key**: Used for testing. Directly uses a private key to sign transaction.
+- **private-key**: Used for testing. Directly uses a private key to sign transactions.

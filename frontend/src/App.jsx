@@ -22,6 +22,8 @@ const ALCHEMY_FAUCET_URL = "https://www.alchemy.com/faucets/ethereum-sepolia";
 const INFURA_ENDPOINT_PREFIX = "https://sepolia.infura.io/v3/";
 const ALCHEMY_ENDPOINT_PREFIX = "https://eth-sepolia.g.alchemy.com/v2/";
 
+// TODO: Stop fetching history on every mount, instead load it once and save it, then have a refresh btn which will fetch from the contract.
+
 function App() {
   const [walletDetected, setWalletDetected] = useState(true);
   const [provider, setProvider] = useState(null);
