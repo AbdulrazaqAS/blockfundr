@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function NoWalletDetected({setWalletDetected}) {
+export default function NoWalletDetected({setWalletDetected, scrollToNavBar}) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -11,6 +11,7 @@ export default function NoWalletDetected({setWalletDetected}) {
       }
     };
     checkIfMobile();
+    if (scrollToNavBar) scrollToNavBar();
   }, []);
 
   return (

@@ -45,11 +45,11 @@ function App() {
   const [inSafeMode, setInSafeMode] = useState(false);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(true);
   
-  const campaignInfoRef = useRef(null);
+  const navbarRef = useRef(null);
   
-  const scrollToCampaignInfo = () => {
-    if (campaignInfoRef.current) {
-      campaignInfoRef.current.scrollIntoView({ behavior: 'smooth' });
+  const scrollToNavBar = () => {
+    if (navbarRef.current) {
+      navbarRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -489,7 +489,7 @@ function App() {
 
   return (
     <div>
-      <NavBar  ref={campaignInfoRef}
+      <NavBar  ref={navbarRef}
         crowdfundContract={crowdfundContract}
         walletDetected={walletDetected}
         setWalletDetected={setWalletDetected}
@@ -506,7 +506,7 @@ function App() {
         fetchBalanceDummyVar={fetchBalanceDummyVar}
       />
       {inSafeMode && <ErrorMessage message={"Contract is in safemode (Readonly)"} />}
-      { !walletDetected && <NoWalletDetected setWalletDetected={setWalletDetected} /> }
+      { !walletDetected && <NoWalletDetected setWalletDetected={setWalletDetected} scrollToNavBar={scrollToNavBar} /> }
       { walletError && <ErrorMessage message={walletError} setErrorMessage={setWalletError}/> }
       { initError && <ErrorMessage message={initError} setErrorMessage={setInitError}/> }
       {currentTab === "contractPanel" &&
@@ -572,7 +572,7 @@ function App() {
                     isClosed={campaign.isClosed}
                     isStopped={campaign.isStopped}
                     setShowCampaignInfo={setShowCampaignInfo}
-                    scrollToCampaignInfo={scrollToCampaignInfo}
+                    scrollToNavBar={scrollToNavBar}
                   />
                 </li>
               ))}
@@ -593,7 +593,7 @@ function App() {
                     isClosed={campaign.isClosed}
                     isStopped={campaign.isStopped}
                     setShowCampaignInfo={setShowCampaignInfo}
-                    scrollToCampaignInfo={scrollToCampaignInfo}
+                    scrollToNavBar={scrollToNavBar}
                   />
                 </li>
               ))}

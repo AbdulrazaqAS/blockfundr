@@ -33,7 +33,7 @@ function getPercentage(part, total) {
 }
 
 
-function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, isStopped, setShowCampaignInfo, scrollToCampaignInfo}){
+function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, isStopped, setShowCampaignInfo, scrollToNavBar}){
     const [metadata, setMetadata] = useState(null);
 
     const defaultTitle = "Loading description... Please wait.";
@@ -53,7 +53,7 @@ function Card({id, creator, metadataUrl, goal, deadline, fundsRaised, isClosed, 
 
     function handleClick() {
         setShowCampaignInfo({id, metadata, isClosed});
-        scrollToCampaignInfo();
+        scrollToNavBar();
     }
 
     useEffect(() => {
