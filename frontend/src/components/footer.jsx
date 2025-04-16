@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopyright, faFaucetDrip } from '@fortawesome/free-solid-svg-icons';
 import { faDev, faGithub } from '@fortawesome/free-brands-svg-icons';
 
-const GITHUB_REPO_URL = "https://github.com/AbdulrazaqAS/crowdfunding.git";
+const GITHUB_REPO_URL = "https://github.com/AbdulrazaqAS/blockfundr.git";
 const DEVTO_URL = "https://dev.to/abdulrazaqas";
 
 export default function Footer({faucetUrl}){
