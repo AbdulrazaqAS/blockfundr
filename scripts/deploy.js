@@ -14,14 +14,19 @@ async function main() {
   const contractName = "Crowdfund";
 
   console.log("Deployer:", deployerAddress);
-  console.log("Deployer balance:", (await deployer.provider.getBalance(deployerAddress)).toString());
+
+  const deployerBal = await deployer.provider.getBalance(deployerAddress);
+  console.log("Deployer balance:", ethers.formatEther(deployerBal), "eth");
 
   const CrowdFund = await ethers.getContractFactory(contractName);
   const crowdfund = await CrowdFund.deploy();
   await crowdfund.waitForDeployment();
-
-  const contractAddress = await crowdfund.getAddress();
-  console.log("Contract address:", contractAddress);
+  const txResponse = crowdfund.deploymentTransaction();
+  const txReceipt = await txResponse.wait();
+  const contractAddress = txReceipt.contractAddress;
+  console.log("Contract address:", contractAddress || "Error getting blocknunber");
+  console.log("Deployment block number:", txReceipt?.blockNumber || "Error getting blocknumber");
+  console.log("Deployment fee:", ethers.formatEther(txReceipt?.fee || 0), "eth");
 
   // Save the contract's artifacts and address in the frontend directory
   saveFrontendFiles(crowdfund, contractName, contractAddress);

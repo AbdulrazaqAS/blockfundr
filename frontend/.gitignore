@@ -1,4 +1,5 @@
 .env
+/src/contracts/contract-address.json
 
 # Logs
 logs
