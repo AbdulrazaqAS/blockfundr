@@ -11,7 +11,7 @@ export default function Footer({faucetUrl}){
         <footer>
             <img src='blockfundr_cover.png' alt='logo' />
             <ul>
-                <li><a href={LINKTREE_URL} target='_blank' rel="noreferrer noopener"><FontAwesomeIcon icon={faGithub} size="2xl" /><p>Linktr</p></a></li>
+                <li><a href={LINKTREE_URL} target='_blank' rel="noreferrer noopener"><FontAwesomeIcon icon={faTree} size="2xl" /><p>Linktr</p></a></li>
                 <li><a href={GITHUB_REPO_URL} target='_blank' rel="noreferrer noopener"><FontAwesomeIcon icon={faGithub} size="2xl" /><p>Github</p></a></li>
                 <li><a href={DEVTO_URL} target='_blank' rel="noreferrer noopener"><FontAwesomeIcon icon={faDev} size="2xl" /><p>Dev.To</p></a></li>
                 <li><a href={faucetUrl} target='_blank' rel="noreferrer noopener"><FontAwesomeIcon icon={faFaucetDrip} size="2xl" /><p>Faucet</p></a></li>
