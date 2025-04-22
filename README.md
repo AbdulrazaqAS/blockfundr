@@ -2,27 +2,36 @@
 ## Blockchain Fundraiser App
 
 ### About
-This is a decentralize platform for fundraising. Users can create fundraiser campaigns providing the following details:
+
+This is a decentralized fundraising platform where users can create and manage fundraising campaigns. Campaign creators provide key details such as:
+
 - Description
 - Cover picture
-- Target eth amount
-- Duration of campaign
+- Target ETH amount
+- Campaign duration
 - Location
 
-Currently only supports the deployment network native currency.
+Currently, the platform only supports the deployment network's native currency.
 
-Will backers/donators will then send eth to the campaign. Only when the raised funds surpass the target, or when the duration is reached, can the campaign creator withdraw the funds. On withrawal, 95% of the total funds goes to the campaign creator and 5% goes to the contract spendable balance for maintenance. All funds belonging to campaigns are locked and therefore not spendable by the contract.
+**How it works:**
 
-The campaign creator can decide to stop (not withdraw) a campaign before the goal or duration is reached. In that case, the raised funds will be available for refund to the backers. Each backer can request for refund and have his funds back. But if the campaign creator has sent funds to the campaign, it will not be available for refund to him. This is to discourage the stopping of campaigns. This amount will be added to the contract balance.
+Backers donate ETH to campaigns. Campaign creators can withdraw funds only if the raised amount exceeds the target goal or when the campaign duration ends. Upon withdrawal, 95% of the total funds are sent to the campaign creator, while 5% goes to the contract balance for maintenance. All campaign funds are locked and cannot be spent by the contract.
 
-The deployer (admin) of the contract has more previlages than other users. The admin can:
-- Stop any campaign (making it refundable) incase the campaign is inappropriate or deceiptful.
-- Also create as many campaigns as possible while others can only have three active campaigns at a time.
-- Also disable creation of new campaigns.
-- Activate the failsafe mode of the contract and make it readonly incase of any issue.
+**Campaign Management:**
+
+Campaign creators can choose to stop a campaign before the goal or duration is reached. If a campaign is stopped, the funds raised are available for refund to backers. However, campaign creators cannot refund their own contributions to the campaign to discourage arbitrary cancellations. These funds will be added to the contract balance.
+
+**Admin Privileges:**
+
+The contract deployer (admin) has additional privileges over regular users. The admin can:
+
+- Stop any campaign and make it refundable if it’s deemed inappropriate or deceptive.
+- Create an unlimited number of campaigns, while other users can only have three active campaigns at a time.
+- Disable the creation of new campaigns.
+- Activate the contract's failsafe mode, making the contract read-only in case of issues.
 - Transfer or withdraw the contract balance.
 
-All these activities are logged to the frontend as history tables to provide transparency.
+All activities are logged and displayed on the frontend, ensuring transparency with history tables.
 
 Visit [Blockfudr](https://crowdfunding-nu-two.vercel.app/) to interact with a version of the contract deployed on Ethereum Sepolia testnet.
 
