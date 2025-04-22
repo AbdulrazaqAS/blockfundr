@@ -529,7 +529,7 @@ describe("Crowdfund", ()=>{
 					.to.emit(crowdfund, "Refunded");
 			});
 
-			it("Should set contribution to 1 after taking refund", async () => {
+			it("Should set contribution to 0 after taking refund", async () => {
 				const { crowdfund, campaignId, signer1 } = await loadFixture(fundCampaignFixture);
 				const amount = ethers.parseEther("6.32");
 				const fundingTx = await crowdfund.connect(signer1).fundCampaign(campaignId, {value:amount});
@@ -541,7 +541,7 @@ describe("Crowdfund", ()=>{
 				const tx2 = await crowdfund.connect(signer1).takeRefund(campaignId);
 				await tx2.wait();
 
-				expect(await crowdfund.connect(signer1).getContribution(campaignId, signer1.address)).to.equal(1);
+				expect(await crowdfund.connect(signer1).getContribution(campaignId, signer1.address)).to.equal(0);
 			});
 
 			it("Should revert if trying to re-refund", async () => {

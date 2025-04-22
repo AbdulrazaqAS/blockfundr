@@ -105,7 +105,7 @@ contract Crowdfund {
         payable(msg.sender).transfer(amount);
 
         contractBalance += contractAmount;  // Withdrawable/transferable by contract
-        usersCampaigns[msg.sender]--;  // TODO: Avoid setting it to zero to reduce gas
+        usersCampaigns[msg.sender]--;  // TODO: Stop alternating btw 0 and non 0 to save gas
         closedCampaigns++;
         emit Withdrawn(_campaignId, msg.sender, amount);
         emit ContractFundsIncreased(0, _campaignId, contractAmount);
@@ -120,7 +120,7 @@ contract Crowdfund {
 
         stoppedCampaigns[_campaignId] = true;
         campaign.isClosed = true;
-        usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--
+        usersCampaigns[campaign.creator]--;  //  Bug: usersCampaigns[msg.sender]--, TODO: Stop alternating btw 0 and non 0 to save gas
         closedCampaigns++;
 
         // Penalty for closing an ongoing campaign. To avoid malicious acts.
@@ -138,14 +138,14 @@ contract Crowdfund {
     function takeRefund(uint256 _campaignId) external notInSafeMode {
         uint256 contribution = getContribution(_campaignId, msg.sender);
         require(stoppedCampaigns[_campaignId], "Refund is only available for stopped campaigns");
-        require(contribution > 1, "No funds available for refund"); // 1 because read below
+        require(contribution > 0, "No funds available for refund");
         
         // TODO: Contract can use a refund that is not taken after a long time.
         Campaign storage campaign = campaigns[_campaignId];
         require(campaign.creator != msg.sender, "Campaign creator can't take refund");  // Penalty for stopping
 
         campaign.fundsRaised -= contribution;
-        campaign.contributions[msg.sender] = 1; // 1 to reduce gas cost of setting a variable to 0
+        campaign.contributions[msg.sender] = 0;
         payable(msg.sender).transfer(contribution);
 
         emit Refunded(_campaignId, msg.sender, contribution);
