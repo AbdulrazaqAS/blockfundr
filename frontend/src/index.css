@@ -555,6 +555,6 @@ footer li p {
   }
   
   #devto_icon {
-	display: hidden;
+	display: none;
   }
 }
