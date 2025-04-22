@@ -553,4 +553,8 @@ footer li p {
   footer img {
     width: 100%;
   }
+  
+  #devto_icon {
+	display: hidden;
+  }
 }
